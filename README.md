@@ -429,6 +429,7 @@ EOF
 
 Now we can deploy an Argo app-of-app which will configure the entire setup that we walked through in the previous section
 ```
+kubectl apply --context gloo -f - <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -456,6 +457,7 @@ spec:
         duration: 5s
         factor: 2
         maxDuration: 3m0s
+EOF
 ```
 
 You can check to see that Gloo Mesh, Istiod and the Istio ingressgateways have been deployed
