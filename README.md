@@ -440,7 +440,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/ably77/gloo-mesh-singlecluster-blog/
+    repoURL: https://github.com/ably77/gloo-mesh-singlecluster-argocd/
     path: easybutton/app-of-app
     targetRevision: HEAD
     directory:
