@@ -16,7 +16,7 @@ spec:
       skipCrds: true
       values: |
         licensing:
-          licenseKey: ${GLOO_MESH_LICENSE_KEY}
+          licenseSecretRef: gloo-license
         common:
           cluster: gloo
         glooMgmtServer:
