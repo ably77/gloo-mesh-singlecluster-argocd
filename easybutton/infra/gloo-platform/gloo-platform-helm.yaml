@@ -16,7 +16,7 @@ spec:
       skipCrds: true
       values: |
         licensing:
-          licenseSecretRef: gloo-license
+          licenseSecretName: "gloo-license"
         common:
           cluster: gloo
         glooMgmtServer:
