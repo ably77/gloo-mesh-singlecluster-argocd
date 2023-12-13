@@ -12,7 +12,7 @@ spec:
   source:
     repoURL: https://github.com/ably77/gloo-mesh-singlecluster-argocd/
     path: easybutton/infra
-    targetRevision: gloo-gateway-update
+    targetRevision: HEAD
     directory:
       recurse: true
   destination:
