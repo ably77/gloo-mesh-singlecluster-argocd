@@ -381,6 +381,16 @@ kubectl port-forward -n gloo-mesh svc/gloo-mesh-ui 8090 --context gloo
 At this point, you should have ArgoCD, Gloo Mesh, and Istio installed on the cluster!
 ![Gloo Mesh UI](.images/gmui2.png)
 
+## Cleanup
+To uninstall, you can delete the Argo Applications
+```
+kubectl delete applications -n argocd istio-ingressgateway
+kubectl delete applications -n argocd istiod
+kubectl delete applications -n argocd istio-base
+kubectl delete applications -n argocd gloo-platform-helm
+kubectl delete applications -n argocd gloo-platform-crds
+```
+
 ## Lets have some fun
 To streamline deployment, utilize the Argo app-of-apps pattern to manage and orchestrate the entire setup in one `Application`!
 
