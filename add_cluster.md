@@ -9,7 +9,7 @@ This tutorial utilizes an additional Kubernetes cluster for demonstration. Instr
 % kubectl config get-contexts
 CURRENT   NAME       CLUSTER        AUTHINFO             NAMESPACE
           cluster1   k3d-cluster1   admin@k3d-cluster1   
-*         cluster1       k3d-mgmt       admin@k3d-mgmt       
+*         mgmt       k3d-mgmt       admin@k3d-mgmt       
 ```
 
 #### Renaming Cluster Context
