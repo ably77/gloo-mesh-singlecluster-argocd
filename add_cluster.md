@@ -18,6 +18,21 @@ If your local clusters have a different context name, you will want to have it m
 kubectl config rename-context <k3d-your_cluster_name> cluster1
 ```
 
+### Note on Argo CD Setup
+Argo CD supports several deployment strategies and architectures for configuring multi cluster setups, primarly
+- Standalone - An Argo instance is installed and co-located with the cluster it’s managing. Each cluster has its own Argo instance.
+- Hub and Spoke - A single Argo instance is used to connect and deploy to many Kubernetes instances
+- Control Plane - Argo instances can be deployed in a mix of standalone and hub and spoke but a control-plane is added for managing and rolling information into a centralized place
+
+Here are a following reference links to deep dive on the various Argo CD deployment architectures:
+
+[Akuity - How many do you need? - Argo CD Architectures Explained](https://akuity.io/blog/argo-cd-architectures-explained/)
+[CodeFresh - A Comprehensive Overview of Argo CD Architectures – 2023](https://codefresh.io/blog/a-comprehensive-overview-of-argo-cd-architectures-2023/)
+
+
+
+This guide uses the standalone architecture, deploying a dedicated Argo CD instance on this new workload cluster with a per-cluster blast radius.
+
 ### Installing Argo CD	
 Let's start by deploying Argo CD to our `cluster1` cluster context
 
