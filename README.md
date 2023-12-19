@@ -136,7 +136,7 @@ spec:
           cluster: gloo
         glooMgmtServer:
           enabled: true
-          serviceType: ClusterIP
+          serviceType: LoadBalancer
           registerCluster: true
           createGlobalWorkspace: true
           ports:
