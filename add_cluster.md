@@ -26,8 +26,8 @@ Argo CD supports several deployment strategies and architectures for configuring
 
 Here are a following reference links to deep dive on the various Argo CD deployment architectures:
 
-[Akuity - How many do you need? - Argo CD Architectures Explained](https://akuity.io/blog/argo-cd-architectures-explained/)
-[CodeFresh - A Comprehensive Overview of Argo CD Architectures – 2023](https://codefresh.io/blog/a-comprehensive-overview-of-argo-cd-architectures-2023/)
+- [Akuity - How many do you need? - Argo CD Architectures Explained](https://akuity.io/blog/argo-cd-architectures-explained/)
+- [CodeFresh - A Comprehensive Overview of Argo CD Architectures – 2023](https://codefresh.io/blog/a-comprehensive-overview-of-argo-cd-architectures-2023/)
 
 
 
