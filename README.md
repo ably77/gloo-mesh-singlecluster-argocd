@@ -372,6 +372,42 @@ NAME                                         READY   STATUS    RESTARTS   AGE
 istio-ingressgateway-1-19-844fc985cd-hfbm5   1/1     Running   0          45s
 ```
 
+# Configure Mesh Config
+Lastly, lets configure our default mesh config by deploying an Argo Application that is synced to the Argo CD Application named `mesh-config`. This application is set to deploy any valid YAML configuration in the `easybutton/mesh-config` directory onto the cluster.
+```
+kubectl apply --context gloo -f - <<EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mesh-config
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/ably77/gloo-mesh-singlecluster-argocd/
+    path: easybutton/mesh-config
+    targetRevision: HEAD
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m0s
+EOF
+```
+
+In this repo is a simple `VirtualGateway` configuration. In the future, we can commit more mesh configuration to this directory to continue building out our cluster
+
 ### Visualize in Gloo Mesh Dashboard
 Access Gloo Mesh Dashboard at `http://localhost:8090`:
 ```
