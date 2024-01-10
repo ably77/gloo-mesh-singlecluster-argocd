@@ -408,6 +408,13 @@ EOF
 
 In this repo is a simple `VirtualGateway` configuration. In the future, we can commit more mesh configuration to this directory to continue building out our cluster
 
+Confirm that the virtual gateway was configured:
+```
+% kubectl get virtualgateway -n istio-gateways --context gloo
+NAME             AGE
+north-south-gw   100s
+```
+
 ### Visualize in Gloo Mesh Dashboard
 Access Gloo Mesh Dashboard at `http://localhost:8090`:
 ```
