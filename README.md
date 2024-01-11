@@ -157,7 +157,7 @@ spec:
         licensing:
           licenseKey: ${GLOO_MESH_LICENSE_KEY}
         common:
-          cluster: "${MY_CLUSTER_CONTEXT}"
+          cluster: "${MY_CLUSTER_NAME}"
         glooMgmtServer:
           enabled: true
           serviceType: ClusterIP
