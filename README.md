@@ -173,7 +173,7 @@ spec:
         telemetryGateway:
           enabled: true
           service:
-            type: LoadBalancer
+            type: ClusterIP
         telemetryCollector:
           enabled: true
           config:
@@ -209,13 +209,15 @@ kubectl get pods -n gloo-mesh  --context "${MY_CLUSTER_CONTEXT}"
 
 Output should look similar to below:
 ```bash
-NAME                                     READY   STATUS    RESTARTS   AGE
-gloo-mesh-redis-788545948f-r2lp6         1/1     Running   0          10m
-gloo-telemetry-gateway-677b9b65f-nnl7z   1/1     Running   0          10m
-gloo-mesh-mgmt-server-5ddc5f8b6b-rpkwz   1/1     Running   0          10m
-gloo-mesh-ui-6879b5c9cc-ffbzk            3/3     Running   0          10m
-prometheus-server-6d8c8bc5b9-sjszn       2/2     Running   0          10m
-gloo-mesh-agent-5c549ccb4b-lxjdp         1/1     Running   0          10m
+NAME                                      READY   STATUS    RESTARTS   AGE
+gloo-mesh-agent-7b79dd5c9-hfw9p           1/1     Running   0          62s
+gloo-mesh-mgmt-server-7f6968d9b9-67l7j    1/1     Running   0          62s
+gloo-mesh-redis-84f57d46bc-dwqx9          1/1     Running   0          62s
+gloo-mesh-ui-56879cb8b-52vpx              3/3     Running   0          61s
+gloo-telemetry-collector-agent-7fgb5      1/1     Running   0          62s
+gloo-telemetry-collector-agent-txwbm      1/1     Running   0          62s
+gloo-telemetry-gateway-5445d7d6b5-5k9sd   1/1     Running   0          62s
+prometheus-server-565cb79f89-jc5ns        2/2     Running   0          62s
 ```
 
 ### install `meshctl`
