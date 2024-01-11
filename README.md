@@ -255,10 +255,10 @@ gloo-mesh | gloo-telemetry-collector-agent | 2/2   | Healthy
 🟢 Mgmt server connectivity to workload agents
 
 Cluster                         | Registered | Connected Pod
-demo-gloo-platform-cluster-arka | true       | gloo-mesh/gloo-mesh-mgmt-server-69b9d9567b-nld5f
+demo-gloo-platform-cluster-arka | true       | gloo-mesh/gloo-mesh-mgmt-server-7f6968d9b9-67l7j
 
 Connected Pod                                    | Clusters
-gloo-mesh/gloo-mesh-mgmt-server-69b9d9567b-nld5f | 1
+gloo-mesh/gloo-mesh-mgmt-server-7f6968d9b9-67l7j | 1
 ```
 
 At this point, we should be able to access our Gloo Platform UI using port-forward at http://localhost:8090
@@ -417,7 +417,7 @@ spec:
             targetPort: 443
           annotations:
             # AWS NLB Annotation
-            service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+            service.beta.kubernetes.io/aws-load-balancer-type: "nlb-ip"
           loadBalancerIP: ""
           loadBalancerSourceRanges: []
           externalTrafficPolicy: ""
