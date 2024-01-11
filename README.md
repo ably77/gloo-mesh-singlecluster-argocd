@@ -22,9 +22,11 @@ CURRENT   NAME   CLUSTER    AUTHINFO         NAMESPACE
 #### Renaming Cluster Context
 If your local clusters have a different context name, you will want to have it match the expected context name(s). In this example, we are setting the context name as `gloo`.
 
-```
+```bash
 export MY_CLUSTER_CONTEXT=gloo
+export MY_CLUSTER_NAME=k3d-gloo
 ```
+
 ```bash
 kubectl config rename-context <k3d-your_cluster_name> "${MY_CLUSTER_CONTEXT}"
 ```
@@ -61,13 +63,13 @@ kubectl get pods -n argocd --context "${MY_CLUSTER_CONTEXT}"
 Output should look similar to below
 ```bash
 NAME                                                READY   STATUS    RESTARTS   AGE
-argocd-application-controller-0                     1/1     Running   0          4m22s
-argocd-applicationset-controller-765944f45d-g7mrr   1/1     Running   0          4m24s
-argocd-dex-server-7977459848-vdptg                  1/1     Running   0          4m24s
-argocd-notifications-controller-6587c9d9-wzxc6      1/1     Running   0          4m23s
-argocd-redis-b5d6bf5f5-95tm5                        1/1     Running   0          4m23s
-argocd-repo-server-7bfc968f69-xw5h5                 1/1     Running   0          4m23s
-argocd-server-77f84bfbb8-tdmwf                      2/2     Running   0          4m23s
+argocd-application-controller-0                     1/1     Running   0          31s
+argocd-applicationset-controller-765944f45d-569kn   1/1     Running   0          33s
+argocd-dex-server-7977459848-swnm6                  1/1     Running   0          33s
+argocd-notifications-controller-6587c9d9-6t4hg      1/1     Running   0          32s
+argocd-redis-b5d6bf5f5-52mk5                        1/1     Running   0          32s
+argocd-repo-server-7bfc968f69-hrqt6                 1/1     Running   0          32s
+argocd-server-77f84bfbb8-lgdlr                      2/2     Running   0          32s
 ```
 
 We can also change the password to: `admin / solo.io`:
@@ -94,7 +96,11 @@ GLOO_MESH_LICENSE_KEY=<input_license_key_here>
 ```
 
 ## Installing Gloo Mesh
-Gloo Mesh can be installed and configured easily using Helm + Argo CD. To install Gloo Mesh Enterprise 2.4.6
+Gloo Mesh can be installed and configured easily using Helm + Argo CD. To install Gloo Mesh Enterprise 2.4.7
+
+```bash
+export GLOO_MESH_VERSION=2.4.7
+```
 
 First we will deploy the Gloo Platform CRD helm chart using an Argo Application
 ```bash
@@ -112,7 +118,7 @@ spec:
   source:
     chart: gloo-platform-crds
     repoURL: https://storage.googleapis.com/gloo-platform/helm-charts
-    targetRevision: 2.4.6
+    targetRevision: "${GLOO_MESH_VERSION}"
   syncPolicy:
     automated:
       prune: true
@@ -182,7 +188,7 @@ spec:
           relay:
             serverAddress: gloo-mesh-mgmt-server:9900
     repoURL: https://storage.googleapis.com/gloo-platform/helm-charts
-    targetRevision: 2.4.6
+    targetRevision: "${GLOO_MESH_VERSION}"
   syncPolicy:
     automated:
       prune: true
@@ -214,7 +220,7 @@ gloo-mesh-agent-5c549ccb4b-lxjdp         1/1     Running   0          10m
 
 ### install `meshctl`
 ```bash
-curl -sL https://run.solo.io/meshctl/install | GLOO_MESH_VERSION=v2.4.6 sh - ;
+curl -sL https://run.solo.io/meshctl/install | GLOO_MESH_VERSION="v${GLOO_MESH_VERSION}" sh - ;
 export PATH=$HOME/.gloo-mesh/bin:$PATH
 ```
 
