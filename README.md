@@ -442,22 +442,22 @@ EOF
 ```
 
 You can check to see that istiod and the istio ingressgateways have been deployed
-```
-kubectl get pods -n istio-system --context "${MY_CLUSTER_CONTEXT}" && kubectl get pods -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
+```bash
+kubectl get pods -n istio-system --context "${MY_CLUSTER_CONTEXT}" && \
+kubectl get pods -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 Output should look similar to below:
-```
-% kubectl get pods -n istio-system --context "${MY_CLUSTER_CONTEXT}" && kubectl get pods -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
-NAME                          READY   STATUS    RESTARTS   AGE
-istiod-1-19-b6ff5fbf7-92bx9   1/1     Running   0          60s
-NAME                                         READY   STATUS    RESTARTS   AGE
-istio-ingressgateway-1-19-844fc985cd-hfbm5   1/1     Running   0          45s
+```bash
+NAME                             READY   STATUS    RESTARTS   AGE
+istiod-1-19-6-86499c5945-bbsfl   1/1     Running   0          38m
+NAME                                           READY   STATUS    RESTARTS   AGE
+istio-ingressgateway-1-19-6-6575484979-5fbn7   1/1     Running   0          36m
 ```
 
 ### Visualize in Gloo Mesh Dashboard
 Access Gloo Mesh Dashboard at `http://localhost:8090`:
-```
+```bash
 kubectl port-forward -n gloo-mesh svc/gloo-mesh-ui 8090 --context "${MY_CLUSTER_CONTEXT}"
 ```
 
@@ -471,26 +471,26 @@ To avoid storing the license key in Git, we can enhance security by utilizing a 
 
 ## Provide Gloo Mesh Enterprise License Key variable
 In case you havent configured it already, Gloo Mesh Enterprise requires a Trial License Key:
-```
+```bash
 GLOO_MESH_LICENSE_KEY=<input_license_key_here>
 ```
 
 The license is stored as a base64 encoded secret, set your the following variable based on your OS:
 
 For Linux:
-```
+```bash
 # Linux
     BASE64_LICENSE_KEY=$(echo -n "${GLOO_MESH_LICENSE_KEY}" | base64 -w 0)
 ```
 
 For Mac:
-```
+```bash
 # Mac OSX
     BASE64_LICENSE_KEY=$(echo -n "${GLOO_MESH_LICENSE_KEY}" | base64 | tr -d '[:space:]')
 ```
 
 Create the license secret:
-```
+```bash
 # Create namespace for Gloo Mesh
 kubectl create ns gloo-mesh --context "${MY_CLUSTER_CONTEXT}"
 
@@ -511,7 +511,7 @@ EOF
 ```
 
 Now we can deploy an Argo app-of-app which will configure the entire setup that we walked through in the previous section
-```
+```bash
 kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f - <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -544,7 +544,7 @@ EOF
 ```
 
 You can check to see that Gloo Mesh, Istiod and the Istio ingressgateways have been deployed
-```
+```bash
 kubectl get pods -n gloo-mesh --context "${MY_CLUSTER_CONTEXT}" && \
 kubectl get pods -n istio-system --context "${MY_CLUSTER_CONTEXT}" && \
 kubectl get pods -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
@@ -552,5 +552,6 @@ kubectl get pods -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
 
 ### Visualize in Gloo Mesh Dashboard
 Access Gloo Mesh Dashboard at `http://localhost:8090`:
-```
+```bash
 kubectl port-forward -n gloo-mesh svc/gloo-mesh-ui 8090 --context "${MY_CLUSTER_CONTEXT}"
+```
