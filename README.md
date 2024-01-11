@@ -269,7 +269,13 @@ kubectl port-forward svc/gloo-mesh-ui -n gloo-mesh 8090:8090 --context "${MY_CLU
 ## Installing Istio
 Here we will use Argo CD to demonstrate how to deploy and manage Istio using helm.
 
-First deploy the Istio base 1.19.5 helm chart to `gloo`
+First, deploy the `istio-base` helm chart.
+
+```bash
+export ISTIO_VERSION=1.19.6
+export ISTIO_REVISION=1-19-6
+```
+
 ```bash
 kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f- <<EOF
 apiVersion: argoproj.io/v1alpha1
@@ -289,7 +295,7 @@ spec:
   source:
     chart: base
     repoURL: https://istio-release.storage.googleapis.com/charts
-    targetRevision: 1.19.3
+    targetRevision: "${ISTIO_VERSION}"
   syncPolicy:
     automated:
       prune: true
@@ -300,6 +306,12 @@ EOF
 ```
 
 Now, lets deploy the Istio control plane:
+
+Get the Hub value from the [Solo support page for Istio Solo images](https://support.solo.io/hc/en-us/articles/4414409064596). The value is present within the `Solo.io Istio Versioning Repo key` section
+```bash
+export HUB=
+```
+
 ```bash
 kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f- <<EOF
 apiVersion: argoproj.io/v1alpha1
@@ -317,19 +329,19 @@ spec:
   source:
     chart: istiod
     repoURL: https://istio-release.storage.googleapis.com/charts
-    targetRevision: 1.19.3
+    targetRevision: "${ISTIO_VERSION}"
     helm:
       values: |
-        revision: 1-19
+        revision: "${ISTIO_REVISION}"
         global:
           meshID: mesh1
           multiCluster:
             clusterName: gloo
           network: network1
-          hub: us-docker.pkg.dev/gloo-mesh/istio-workshops
-          tag: 1.19.5-solo
+          hub: ${HUB}
+          tag: "${ISTIO_VERSION}-solo"
         meshConfig:
-          trustDomain: gloo
+          trustDomain: "${MY_CLUSTER_NAME}.local"
           accessLogFile: /dev/stdout
           accessLogEncoding: JSON
           enableAutoMtls: true
@@ -381,13 +393,13 @@ spec:
   source:
     chart: gateway
     repoURL: https://istio-release.storage.googleapis.com/charts
-    targetRevision: 1.19.3
+    targetRevision: "${ISTIO_VERSION}"
     helm:
       values: |
         # Name allows overriding the release name. Generally this should not be set
-        name: "istio-ingressgateway-1-19"
+        name: "istio-ingressgateway-${ISTIO_REVISION}"
         # revision declares which revision this gateway is a part of
-        revision: "1-19"
+        revision: "${ISTIO_REVISION}"
         
         replicaCount: 1
         
@@ -418,7 +430,7 @@ spec:
         
         # Labels to apply to all resources
         labels:
-          istio.io/rev: 1-19
+          istio.io/rev: ${ISTIO_REVISION}
           istio: ingressgateway
   syncPolicy:
     automated:
