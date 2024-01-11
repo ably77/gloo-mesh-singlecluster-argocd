@@ -4,59 +4,77 @@
 GitOps is becoming increasingly popular approach to manage Kubernetes components. It works by using Git as a single source of truth for declarative infrastructure and applications, allowing your application definitions, configurations, and environments to be declarative and version controlled. This helps to make these workflows automated, auditable, and easy to understand.
 
 ## Purpose of this Tutorial
-The main goal of this tutorial is to showcase how Gloo Mesh components can seamlessly integrate into a GitOps workflow, with Argo CD being our tool of choice. We'll guide you through the installation of Argo CD, Gloo Platform, Istio, and finally, we'll explore the Gloo Mesh Dashboard.
+The main goal of this tutorial is to showcase how Gloo Platform components can seamlessly integrate into a GitOps workflow, with Argo CD being our tool of choice. We'll guide you through the installation of Argo CD, Gloo Platform, Istio, and finally, we'll explore the Gloo Platform Dashboard.
 
 ## High Level Architecture
 ![High Level Architecture](.images/single-cluster-arch1.png)
 
 ## Prerequisites
 This tutorial assumes a single Kubernetes cluster for demonstration. Instructions have been validated on k3d, as well as in EKS and GKE. Please note that the setup and installation of Kubernetes are beyond the scope of this guide. Ensure that your cluster contexts are named `gloo` by running:
+```bash
+kubectl config get-contexts
 ```
-% kubectl config get-contexts
+```
 CURRENT   NAME   CLUSTER    AUTHINFO         NAMESPACE
 *         gloo   k3d-gloo   admin@k3d-gloo   
 ```
 
 #### Renaming Cluster Context
-If your local clusters have a different context name, you will want to have it match the expected context name(s)
+If your local clusters have a different context name, you will want to have it match the expected context name(s). In this example, we are setting the context name as `gloo`.
+
 ```
-kubectl config rename-context <k3d-your_cluster_name> gloo
+export MY_CLUSTER_CONTEXT=gloo
+```
+```bash
+kubectl config rename-context <k3d-your_cluster_name> "${MY_CLUSTER_CONTEXT}"
 ```
 
 ### Installing Argo CD	
 Let's start by deploying Argo CD to our `gloo` cluster context
 
 Create Argo CD namespace
-```
-kubectl create namespace argocd --context gloo
+```bash
+kubectl create namespace argocd --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 Deploy Argo CD 2.8.0 using the [non-HA YAML manifests](https://github.com/argoproj/argo-cd/releases)
-```
-until kubectl apply -k https://github.com/solo-io/gitops-library.git/argocd/deploy/default/ --context gloo > /dev/null 2>&1; do sleep 2; done
+<!-- Using https://github.com/solo-io/gitops-library/tree/main/argocd/deploy/default -->
+```bash
+until kubectl apply -k https://github.com/solo-io/gitops-library.git/argocd/deploy/default/ --context "${MY_CLUSTER_CONTEXT}" > /dev/null 2>&1; do sleep 2; done
 ```
 
-Check to see Argo CD status
+Check deployment status:
+```bash
+kubectl --context ${MY_CLUSTER_CONTEXT} -n argocd rollout status deploy/argocd-applicationset-controller
+kubectl --context ${MY_CLUSTER_CONTEXT} -n argocd rollout status deploy/argocd-dex-server
+kubectl --context ${MY_CLUSTER_CONTEXT} -n argocd rollout status deploy/argocd-notifications-controller
+kubectl --context ${MY_CLUSTER_CONTEXT} -n argocd rollout status deploy/argocd-redis
+kubectl --context ${MY_CLUSTER_CONTEXT} -n argocd rollout status deploy/argocd-repo-server
+kubectl --context ${MY_CLUSTER_CONTEXT} -n argocd rollout status deploy/argocd-server
 ```
-kubectl get pods -n argocd --context gloo
+
+Check to see Argo CD status.
+```bash
+kubectl get pods -n argocd --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 Output should look similar to below
-```
-% kubectl get pods -n argocd --context gloo
-NAME                                  READY   STATUS    RESTARTS   AGE
-argocd-redis-74d8c6db65-lj5qz         1/1     Running   0          5m48s
-argocd-dex-server-5896d988bb-ksk5j    1/1     Running   0          5m48s
-argocd-application-controller-0       1/1     Running   0          5m48s
-argocd-repo-server-6fd99dbbb5-xr8ld   1/1     Running   0          5m48s
-argocd-server-7dd7894bd7-t92rr        1/1     Running   0          5m48s
+```bash
+NAME                                                READY   STATUS    RESTARTS   AGE
+argocd-application-controller-0                     1/1     Running   0          4m22s
+argocd-applicationset-controller-765944f45d-g7mrr   1/1     Running   0          4m24s
+argocd-dex-server-7977459848-vdptg                  1/1     Running   0          4m24s
+argocd-notifications-controller-6587c9d9-wzxc6      1/1     Running   0          4m23s
+argocd-redis-b5d6bf5f5-95tm5                        1/1     Running   0          4m23s
+argocd-repo-server-7bfc968f69-xw5h5                 1/1     Running   0          4m23s
+argocd-server-77f84bfbb8-tdmwf                      2/2     Running   0          4m23s
 ```
 
 We can also change the password to: `admin / solo.io`:
-```
+```bash
 # bcrypt(password)=$2a$10$79yaoOg9dL5MO8pn8hGqtO4xQDejSEVNWAGQR268JHLdrCw6UCYmy
 # password: solo.io
-kubectl --context gloo -n argocd patch secret argocd-secret \
+kubectl --context "${MY_CLUSTER_CONTEXT}" -n argocd patch secret argocd-secret \
   -p '{"stringData": {
     "admin.password": "$2a$10$79yaoOg9dL5MO8pn8hGqtO4xQDejSEVNWAGQR268JHLdrCw6UCYmy",
     "admin.passwordMtime": "'$(date +%FT%T%Z)'"
@@ -66,21 +84,21 @@ kubectl --context gloo -n argocd patch secret argocd-secret \
 #### Navigating to Argo CD UI
 At this point, we should be able to access our Argo CD server using port-forward at http://localhost:9999
 ```
-kubectl port-forward svc/argocd-server -n argocd 9999:443 --context gloo
+kubectl port-forward svc/argocd-server -n argocd 9999:443 --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 ## Provide Gloo Mesh Enterprise License Key variable
 Gloo Mesh Enterprise requires a Trial License Key:
-```
+```bash
 GLOO_MESH_LICENSE_KEY=<input_license_key_here>
 ```
 
 ## Installing Gloo Mesh
-Gloo Mesh can be installed and configured easily using Helm + Argo CD. To install Gloo Mesh Enterprise 2.4.4 
+Gloo Mesh can be installed and configured easily using Helm + Argo CD. To install Gloo Mesh Enterprise 2.4.6
 
 First we will deploy the Gloo Platform CRD helm chart using an Argo Application
-```
-kubectl apply --context gloo -f- <<EOF
+```bash
+kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f- <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -94,7 +112,7 @@ spec:
   source:
     chart: gloo-platform-crds
     repoURL: https://storage.googleapis.com/gloo-platform/helm-charts
-    targetRevision: 2.4.4
+    targetRevision: 2.4.6
   syncPolicy:
     automated:
       prune: true
@@ -111,8 +129,8 @@ EOF
 ```
 
 Then deploy the Gloo Platform helm chart
-```
-kubectl apply --context gloo -f- <<EOF
+```bash
+kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f- <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -133,7 +151,7 @@ spec:
         licensing:
           licenseKey: ${GLOO_MESH_LICENSE_KEY}
         common:
-          cluster: gloo
+          cluster: "${MY_CLUSTER_CONTEXT}"
         glooMgmtServer:
           enabled: true
           serviceType: ClusterIP
@@ -164,7 +182,7 @@ spec:
           relay:
             serverAddress: gloo-mesh-mgmt-server:9900
     repoURL: https://storage.googleapis.com/gloo-platform/helm-charts
-    targetRevision: 2.4.4
+    targetRevision: 2.4.6
   syncPolicy:
     automated:
       prune: true
@@ -179,13 +197,12 @@ EOF
 ```
 
 You can check to see that the Gloo Mesh Management Plane is deployed
-```
-kubectl get pods -n gloo-mesh --context gloo
+```bash
+kubectl get pods -n gloo-mesh  --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 Output should look similar to below:
-```
-% kubectl get pods -n gloo-mesh --context gloo 
+```bash
 NAME                                     READY   STATUS    RESTARTS   AGE
 gloo-mesh-redis-788545948f-r2lp6         1/1     Running   0          10m
 gloo-telemetry-gateway-677b9b65f-nnl7z   1/1     Running   0          10m
@@ -195,12 +212,58 @@ prometheus-server-6d8c8bc5b9-sjszn       2/2     Running   0          10m
 gloo-mesh-agent-5c549ccb4b-lxjdp         1/1     Running   0          10m
 ```
 
+### install `meshctl`
+```bash
+curl -sL https://run.solo.io/meshctl/install | GLOO_MESH_VERSION=v2.4.6 sh - ;
+export PATH=$HOME/.gloo-mesh/bin:$PATH
+```
+
+You can check status using the `meshctl` CLI
+```bash
+meshctl check --kubecontext "${MY_CLUSTER_CONTEXT}"
+```
+
+Output should look similar to below:
+```bash
+🟢 License status
+
+ INFO  gloo-mesh enterprise license expiration is 04 Jun 24 16:41 EDT
+ INFO  No GraphQL license module found for any product
+
+🟢 CRD version check
+
+
+🟢 Gloo Platform deployment status
+
+Namespace | Name                           | Ready | Status
+gloo-mesh | gloo-mesh-agent                | 1/1   | Healthy
+gloo-mesh | gloo-mesh-mgmt-server          | 1/1   | Healthy
+gloo-mesh | gloo-mesh-redis                | 1/1   | Healthy
+gloo-mesh | gloo-mesh-ui                   | 1/1   | Healthy
+gloo-mesh | gloo-telemetry-gateway         | 1/1   | Healthy
+gloo-mesh | prometheus-server              | 1/1   | Healthy
+gloo-mesh | gloo-telemetry-collector-agent | 2/2   | Healthy
+
+🟢 Mgmt server connectivity to workload agents
+
+Cluster                         | Registered | Connected Pod
+demo-gloo-platform-cluster-arka | true       | gloo-mesh/gloo-mesh-mgmt-server-69b9d9567b-nld5f
+
+Connected Pod                                    | Clusters
+gloo-mesh/gloo-mesh-mgmt-server-69b9d9567b-nld5f | 1
+```
+
+At this point, we should be able to access our Gloo Platform UI using port-forward at http://localhost:8090
+```bash
+kubectl port-forward svc/gloo-mesh-ui -n gloo-mesh 8090:8090 --context "${MY_CLUSTER_CONTEXT}"
+```
+
 ## Installing Istio
 Here we will use Argo CD to demonstrate how to deploy and manage Istio using helm.
 
-First deploy the Istio base 1.19.3 helm chart to `gloo`
-```
-kubectl apply --context gloo -f- <<EOF
+First deploy the Istio base 1.19.5 helm chart to `gloo`
+```bash
+kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f- <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -229,8 +292,8 @@ EOF
 ```
 
 Now, lets deploy the Istio control plane:
-```
-kubectl apply --context gloo -f- <<EOF
+```bash
+kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f- <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -256,7 +319,7 @@ spec:
             clusterName: gloo
           network: network1
           hub: us-docker.pkg.dev/gloo-mesh/istio-workshops
-          tag: 1.19.3-solo
+          tag: 1.19.5-solo
         meshConfig:
           trustDomain: gloo
           accessLogFile: /dev/stdout
@@ -291,8 +354,8 @@ EOF
 ```
 
 Now we can deploy the Istio Ingressgateway
-```
-kubectl apply --context gloo -f- <<EOF
+```bash
+kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f- <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -360,12 +423,12 @@ EOF
 
 You can check to see that istiod and the istio ingressgateways have been deployed
 ```
-kubectl get pods -n istio-system --context gloo && kubectl get pods -n istio-gateways --context gloo
+kubectl get pods -n istio-system --context "${MY_CLUSTER_CONTEXT}" && kubectl get pods -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 Output should look similar to below:
 ```
-% kubectl get pods -n istio-system --context gloo && kubectl get pods -n istio-gateways --context gloo
+% kubectl get pods -n istio-system --context "${MY_CLUSTER_CONTEXT}" && kubectl get pods -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
 NAME                          READY   STATUS    RESTARTS   AGE
 istiod-1-19-b6ff5fbf7-92bx9   1/1     Running   0          60s
 NAME                                         READY   STATUS    RESTARTS   AGE
@@ -375,7 +438,7 @@ istio-ingressgateway-1-19-844fc985cd-hfbm5   1/1     Running   0          45s
 ### Visualize in Gloo Mesh Dashboard
 Access Gloo Mesh Dashboard at `http://localhost:8090`:
 ```
-kubectl port-forward -n gloo-mesh svc/gloo-mesh-ui 8090 --context gloo
+kubectl port-forward -n gloo-mesh svc/gloo-mesh-ui 8090 --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 At this point, you should have ArgoCD, Gloo Mesh, and Istio installed on the cluster!
@@ -409,10 +472,10 @@ For Mac:
 Create the license secret:
 ```
 # Create namespace for Gloo Mesh
-kubectl create ns gloo-mesh --context gloo
+kubectl create ns gloo-mesh --context "${MY_CLUSTER_CONTEXT}"
 
 # Apply license keys as a Kubernetes secret
-kubectl apply --context gloo -f - <<EOF
+kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f - <<EOF
 apiVersion: v1
 data:
   gloo-gateway-license-key: ${BASE64_LICENSE_KEY}
@@ -429,7 +492,7 @@ EOF
 
 Now we can deploy an Argo app-of-app which will configure the entire setup that we walked through in the previous section
 ```
-kubectl apply --context gloo -f - <<EOF
+kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f - <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -462,12 +525,12 @@ EOF
 
 You can check to see that Gloo Mesh, Istiod and the Istio ingressgateways have been deployed
 ```
-kubectl get pods -n gloo-mesh --context gloo && \
-kubectl get pods -n istio-system --context gloo && \
-kubectl get pods -n istio-gateways --context gloo
+kubectl get pods -n gloo-mesh --context "${MY_CLUSTER_CONTEXT}" && \
+kubectl get pods -n istio-system --context "${MY_CLUSTER_CONTEXT}" && \
+kubectl get pods -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 ### Visualize in Gloo Mesh Dashboard
 Access Gloo Mesh Dashboard at `http://localhost:8090`:
 ```
-kubectl port-forward -n gloo-mesh svc/gloo-mesh-ui 8090 --context gloo
+kubectl port-forward -n gloo-mesh svc/gloo-mesh-ui 8090 --context "${MY_CLUSTER_CONTEXT}"
