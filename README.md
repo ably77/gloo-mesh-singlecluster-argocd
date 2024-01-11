@@ -96,14 +96,12 @@ GLOO_MESH_LICENSE_KEY=<input_license_key_here>
 ```
 
 ## Installing Gloo Mesh
-Gloo Mesh can be installed and configured easily using Helm + Argo CD. To install Gloo Mesh Enterprise 2.4.7
-
-```bash
-export GLOO_MESH_VERSION=2.4.7
-```
+Gloo Mesh can be installed and configured easily using Helm + Argo CD. To install Gloo Mesh Enterprise
 
 First we will deploy the Gloo Platform CRD helm chart using an Argo Application
 ```bash
+export GLOO_MESH_VERSION=2.4.7;
+
 kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f- <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
