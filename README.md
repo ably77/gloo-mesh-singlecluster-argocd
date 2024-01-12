@@ -24,7 +24,7 @@ If your local clusters have a different context name, you will want to have it m
 
 ```bash
 export MY_CLUSTER_CONTEXT=gloo
-export MY_CLUSTER_NAME=k3d-gloo
+export MY_CLUSTER_NAME=gloo
 ```
 
 ```bash
