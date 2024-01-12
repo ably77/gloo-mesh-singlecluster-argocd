@@ -11,7 +11,7 @@ spec:
     - revision: 1-19
       # List all workload clusters to install Istio into
       clusters:
-      - name: k3d-mgmt
+      - name: gloo
         # If set to true, the spec for this revision is applied in the cluster
         defaultRevision: true
       #- name: cluster1
