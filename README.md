@@ -281,7 +281,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/ably77/gloo-mesh-singlecluster-argocd/
-    path: easybutton/mesh-config
+    path: istiolifecyclemanager
     targetRevision: add-istiolifecyclemanager
     directory:
       recurse: true
