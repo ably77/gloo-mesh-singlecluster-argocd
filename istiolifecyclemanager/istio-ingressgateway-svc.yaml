@@ -7,6 +7,7 @@ metadata:
   annotations:
     # AWS NLB Annotation
     service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    argocd.argoproj.io/sync-wave: "-9"
   name: istio-ingressgateway
   namespace: istio-gateways
 spec:

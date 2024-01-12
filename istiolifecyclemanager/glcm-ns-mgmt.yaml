@@ -5,6 +5,7 @@ metadata:
   name: istio-ingressgateway
   namespace: gloo-mesh
   annotations:
+    argocd.argoproj.io/sync-wave: "-7"
 spec:
   installations:
       # The revision for this installation, such as 1-19
