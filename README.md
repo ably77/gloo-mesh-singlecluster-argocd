@@ -264,7 +264,49 @@ At this point, we should be able to access our Gloo Platform UI using port-forwa
 kubectl port-forward svc/gloo-mesh-ui -n gloo-mesh 8090:8090 --context "${MY_CLUSTER_CONTEXT}"
 ```
 
-## Installing Istio
+## Install Istio with IstioLifecycleManager
+
+Now that we have Gloo Mesh installed, we can use the IstioLifecycleManager CRD to deploy and manage Istio across all of our workload clusters. This is especially helpful at scale when it is required to update Istio to a new image image for a security patch, or upgrading to a new release. 
+
+Since we can treat the `IstioLifecycleManager` and `GatewayLifecycleManager` the same as any other Kubernetes CRD, we can deploy Istio on our cluster by using an Argo Application that is configured to deploy any valid YAML configuration in the `lifecyclemanager` directory in this repo
+
+```
+kubectl apply --context gloo -f - <<EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: istio-lifecyclemanager
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/ably77/gloo-mesh-singlecluster-argocd/
+    path: istiolifecyclemanager
+    targetRevision: add-istiolifecyclemanager
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m0s
+EOF
+```
+
+In the future, we can commit more Istio configuration to this directory to continue building out our cluster, or even to deploy Istio on to newly onboarded workload clusters.
+
+## Installing Istio with Helm
+NOTE: If you have already completed the installation using IstioLifecycleManager, you can skip this step completely.
+
 Here we will use Argo CD to demonstrate how to deploy and manage Istio using helm.
 
 First, deploy the `istio-base` helm chart.
@@ -453,8 +495,9 @@ NAME                                           READY   STATUS    RESTARTS   AGE
 istio-ingressgateway-1-19-6-6575484979-5fbn7   1/1     Running   0          36m
 ```
 
-# Configure Mesh Config
-Lastly, lets configure our default mesh config by deploying an Argo Application that is synced to the Argo CD Application named `mesh-config`. This application is set to deploy any valid YAML configuration in the `easybutton/mesh-config` directory onto the cluster.
+## Configure Mesh Config
+Lastly, lets configure our default mesh config by deploying an Argo Application that is configured to deploy any valid YAML configuration in the `easybutton/mesh-config` directory onto the cluster.
+
 ```
 kubectl apply --context gloo -f - <<EOF
 apiVersion: argoproj.io/v1alpha1
