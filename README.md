@@ -300,7 +300,9 @@ spec:
 EOF
 ```
 
-## Installing Istio
+## Installing Istio with Helm
+NOTE: If you have already completed the installation using IstioLifecycleManager, you can skip this step completely.
+
 Here we will use Argo CD to demonstrate how to deploy and manage Istio using helm.
 
 First, deploy the `istio-base` helm chart.
