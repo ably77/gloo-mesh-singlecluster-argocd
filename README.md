@@ -585,7 +585,7 @@ meshctl dashboard
 ```
 
 At this point, you should have ArgoCD, Gloo Mesh, and Istio installed on the cluster!
-![Gloo Mesh UI](.images/gmui2.png)
+![Gloo Mesh UI](.images/gmui3.png)
 
 ## Cleanup
 To uninstall, you can delete the Argo Applications
