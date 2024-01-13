@@ -533,16 +533,44 @@ EOF
 In this repo is a simple `VirtualGateway` configuration. In the future, we can commit more mesh configuration to this directory to continue building out our cluster
 
 Confirm that the virtual gateway was configured:
+
+```bash
+kubectl get virtualgateway -n istio-gateways --context ${MY_CLUSTER_CONTEXT}
+```
+
+Output should look similar to below
 ```
 % kubectl get virtualgateway -n istio-gateways --context ${MY_CLUSTER_CONTEXT}
 NAME             AGE
 north-south-gw   100s
 ```
 
-### Visualize in Gloo Mesh Dashboard
+Confirm that two route tables were created
+
+```bash
+kubectl get routetables -A --context ${MY_CLUSTER_CONTEXT}
+```
+
+Output should look similar to below
+
+```
+% kubectl get routetables -A --context ${MY_CLUSTER_CONTEXT}
+NAMESPACE        NAME                       AGE
+istio-gateways   ops-routetable-80          2m47s
+gloo-mesh        gloo-mesh-ui-delegate-rt   2m47s
+```
+
+### Visualize in Gloo Mesh UI with port-forwarding
 Access Gloo Mesh Dashboard at `http://localhost:8090`:
+
 ```bash
 kubectl port-forward -n gloo-mesh svc/gloo-mesh-ui 8090 --context "${MY_CLUSTER_CONTEXT}"
+```
+
+### Visualize in Gloo Mesh UI with meshctl
+
+```bash
+meshctl dashboard
 ```
 
 At this point, you should have ArgoCD, Gloo Mesh, and Istio installed on the cluster!

@@ -1,0 +1,18 @@
+apiVersion: networking.gloo.solo.io/v2
+kind: RouteTable
+metadata:
+  name: argo-cd-ui-delegate-rt
+  namespace: argocd
+spec:
+  http:
+  - name: argocd
+    matchers:
+    - uri:
+        prefix: /argo
+    forwardTo:
+      destinations:
+      - port:
+          number: 80
+        ref:
+          name: argocd-server
+          namespace: argocd
