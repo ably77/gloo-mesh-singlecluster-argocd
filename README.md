@@ -310,10 +310,10 @@ kubectl get pods -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
 
 Output should look similar to below:
 ```bash
-NAME                             READY   STATUS    RESTARTS   AGE
-istiod-1-19-6-86499c5945-bbsfl   1/1     Running   0          38m
-NAME                                           READY   STATUS    RESTARTS   AGE
-istio-ingressgateway-1-19-6-6575484979-5fbn7   1/1     Running   0          36m
+NAME                           READY   STATUS    RESTARTS   AGE
+istiod-1-19-78b54758c5-q852m   1/1     Running   0          2m16s
+NAME                                        READY   STATUS    RESTARTS   AGE
+istio-ingressgateway-1-19-5bc944987-q8glz   1/1     Running   0          2m
 ```
 
 In the future, we can commit more Istio configuration to this directory to continue building out our cluster, or even to deploy Istio on to newly onboarded workload clusters.
