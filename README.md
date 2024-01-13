@@ -284,7 +284,7 @@ spec:
   source:
     repoURL: https://github.com/ably77/gloo-mesh-singlecluster-argocd/
     path: istiolifecyclemanager
-    targetRevision: add-istiolifecyclemanager
+    targetRevision: HEAD
     directory:
       recurse: true
   destination:
