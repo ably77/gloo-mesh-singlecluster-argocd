@@ -560,14 +560,25 @@ istio-gateways   ops-routetable-80          2m47s
 gloo-mesh        gloo-mesh-ui-delegate-rt   2m47s
 ```
 
+### Visualize in Gloo Mesh UI using the gateway
+
+The route table above exposes the Gloo Mesh UI on port 80 of the Istio Ingress Gateway we deployed earlier. You should be able to access it with the following command:
+
+```bash
+echo "access the dashboard at http://$(kubectl --context ${MY_CLUSTER_CONTEXT} get svc -n istio-gateways --selector=istio=ingressgateway -o jsonpath='{.items[*].status.loadBalancer.ingress[0].*}')"
+```
+
 ### Visualize in Gloo Mesh UI with port-forwarding
-Access Gloo Mesh Dashboard at `http://localhost:8090`:
+
+If LoadBalancer integration is not available, you can use port-forwarding. Access Gloo Mesh Dashboard at `http://localhost:8090`:
 
 ```bash
 kubectl port-forward -n gloo-mesh svc/gloo-mesh-ui 8090 --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 ### Visualize in Gloo Mesh UI with meshctl
+
+Additionally you can use `meshctl` to do the port-forward for you
 
 ```bash
 meshctl dashboard
