@@ -595,6 +595,8 @@ kubectl delete applications -n argocd istiod
 kubectl delete applications -n argocd istio-base
 kubectl delete applications -n argocd gloo-platform-helm
 kubectl delete applications -n argocd gloo-platform-crds
+kubectl delete applications -n argocd mesh-config
+kubectl delete applications -n argocd istio-lifecyclemanager
 ```
 
 ## Lets have some fun
