@@ -271,7 +271,7 @@ Now that we have Gloo Mesh installed, we can use the IstioLifecycleManager CRD t
 Since we can treat the `IstioLifecycleManager` and `GatewayLifecycleManager` the same as any other Kubernetes CRD, we can deploy Istio on our cluster by using an Argo Application that is configured to deploy any valid YAML configuration in the `/lifecyclemanager` [directory in this repo](https://github.com/ably77/gloo-mesh-singlecluster-argocd/tree/main/istiolifecyclemanager)
 
 ```
-kubectl apply --context gloo -f - <<EOF
+kubectl apply --context ${MY_CLUSTER_CONTEXT} -f - <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -499,7 +499,7 @@ istio-ingressgateway-1-19-6-6575484979-5fbn7   1/1     Running   0          36m
 Lastly, lets configure our default mesh config by deploying an Argo Application that is configured to deploy any valid YAML configuration in the `easybutton/mesh-config` directory onto the cluster.
 
 ```
-kubectl apply --context gloo -f - <<EOF
+kubectl apply --context ${MY_CLUSTER_CONTEXT} -f - <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -534,7 +534,7 @@ In this repo is a simple `VirtualGateway` configuration. In the future, we can c
 
 Confirm that the virtual gateway was configured:
 ```
-% kubectl get virtualgateway -n istio-gateways --context gloo
+% kubectl get virtualgateway -n istio-gateways --context ${MY_CLUSTER_CONTEXT}
 NAME             AGE
 north-south-gw   100s
 ```
