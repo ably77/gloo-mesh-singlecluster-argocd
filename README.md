@@ -372,8 +372,6 @@ Output should look similar to below:
 ```bash
 NAME                           READY   STATUS    RESTARTS   AGE
 istiod-1-19-78b54758c5-q852m   1/1     Running   0          2m16s
-NAME                                        READY   STATUS    RESTARTS   AGE
-istio-ingressgateway-1-19-5bc944987-q8glz   1/1     Running   0          2m
 ```
 
 Next we will configure the `istio-gateways` namespace and Kubernetes service for the gateway. Separating the Kubernetes `Service` is recommended because it allows us to manage the lifecycle of the load balancer in front of the Istio ingressgateway separate from the lifecycle of the deployment. For example, having full control over the revision selector of the `Service` and when to make the traffic switchover when doing a canary upgrade. 
@@ -456,21 +454,20 @@ spec:
 EOF
 ```
 
-You can check to see that istiod and the istio ingressgateways have been deployed
+You can check to see that the Istio ingressgateway has been deployed
 
 ```bash
-kubectl get pods -n istio-system --context "${MY_CLUSTER_CONTEXT}" && \
 kubectl get pods -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 Output should look similar to below:
 
 ```bash
-NAME                           READY   STATUS    RESTARTS   AGE
-istiod-1-19-78b54758c5-q852m   1/1     Running   0          2m16s
 NAME                                        READY   STATUS    RESTARTS   AGE
-istio-ingressgateway-1-19-5bc944987-q8glz   1/1     Running   0          2m
+istio-ingressgateway-1-19-5bc944987-882ls   1/1     Running   0          55s
 ```
+
+### Configuring IstioLifecycleManager or GatewayLifecycleManager with Argo CD
 
 Since we can treat the `IstioLifecycleManager` and `GatewayLifecycleManager` the same as any other Kubernetes CRD, we can deploy Istio on our cluster by using an Argo Application that is configured to deploy any valid YAML configuration in the `/lifecyclemanager` [directory in this repo](https://github.com/ably77/gloo-mesh-singlecluster-argocd/tree/main/istiolifecyclemanager)
 
@@ -506,7 +503,7 @@ spec:
 EOF
 ```
 
-In the future, we can commit more Istio configuration to this directory to continue building out our cluster, or even to deploy Istio on to newly onboarded workload clusters.
+In the future, we can commit more Istio configuration to this directory to continue building out our cluster, or even to deploy Istio onto other newly onboarded workload clusters.
 
 ## Installing Istio with Helm
 NOTE: If you have already completed the installation using IstioLifecycleManager, you can skip this step completely.
