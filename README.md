@@ -469,14 +469,17 @@ istio-ingressgateway-1-19-5bc944987-882ls   1/1     Running   0          55s
 
 ### Configuring IstioLifecycleManager or GatewayLifecycleManager with Argo CD
 
-Since we can treat the `IstioLifecycleManager` and `GatewayLifecycleManager` the same as any other Kubernetes CRD, we can deploy Istio on our cluster by using an Argo Application that is configured to deploy any valid YAML configuration in the `/lifecyclemanager` [directory in this repo](https://github.com/ably77/gloo-mesh-singlecluster-argocd/tree/main/istiolifecyclemanager)
+Since we can treat the `IstioLifecycleManager` and `GatewayLifecycleManager` the same as any other Kubernetes CRD, we can deploy Istio on our cluster by using an Argo Application that is configured to deploy any valid YAML configuration in the `/lifecyclemanager` [directory in this repo](https://github.com/ably77/gloo-mesh-singlecluster-argocd/tree/main/istiolifecyclemanager). This will allow us to configure all of the steps we just did with one Argo CD `Application` resource.
+
+Note the use of the annotation `argocd.argoproj.io/sync-wave` in each manifest, which can help with the deployment ordering of each component. The order of operations would go least to greatest. More on [Argo CD sync-waves](https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/#how-do-i-configure-waves).
+
+The corresponding Argo Application would look like this:
 
 ```
-kubectl apply --context ${MY_CLUSTER_CONTEXT} -f - <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: istio-lifecyclemanager
+  name: istio-lifecyclemanager-deployments
   namespace: argocd
   finalizers:
   - resources-finalizer.argocd.argoproj.io
@@ -500,7 +503,6 @@ spec:
         duration: 5s
         factor: 2
         maxDuration: 3m0s
-EOF
 ```
 
 In the future, we can commit more Istio configuration to this directory to continue building out our cluster, or even to deploy Istio onto other newly onboarded workload clusters.
