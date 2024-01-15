@@ -91,10 +91,25 @@ At this point, we should be able to access our Argo CD server using port-forward
 kubectl port-forward svc/argocd-server -n argocd 9999:443 --context "${MY_CLUSTER_CONTEXT}"
 ```
 
-## Provide Gloo Mesh Enterprise License Key variable
+## Set Environment variables
+
 Gloo Mesh Enterprise requires a Trial License Key:
+
 ```bash
 GLOO_MESH_LICENSE_KEY=<input_license_key_here>
+```
+
+Provide the Istio version and revision label:
+
+```bash
+export ISTIO_VERSION=1.19.6
+export ISTIO_REVISION=1-19-6
+```
+
+Provide the Gloo Mesh version:
+
+```bash
+export GLOO_MESH_VERSION=2.4.7
 ```
 
 ## Installing Gloo Mesh
@@ -102,8 +117,6 @@ Gloo Mesh can be installed and configured easily using Helm + Argo CD. To instal
 
 First we will deploy the Gloo Platform CRD helm chart using an Argo Application
 ```bash
-export GLOO_MESH_VERSION=2.4.7;
-
 kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f- <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -348,6 +361,21 @@ spec:
 EOF
 ```
 
+You can check to see that istiod has been deployed
+
+```bash
+kubectl get pods -n istio-system --context "${MY_CLUSTER_CONTEXT}"
+```
+
+Output should look similar to below:
+
+```bash
+NAME                           READY   STATUS    RESTARTS   AGE
+istiod-1-19-78b54758c5-q852m   1/1     Running   0          2m16s
+NAME                                        READY   STATUS    RESTARTS   AGE
+istio-ingressgateway-1-19-5bc944987-q8glz   1/1     Running   0          2m
+```
+
 Next we will configure the `istio-gateways` namespace and Kubernetes service for the gateway. Separating the Kubernetes `Service` is recommended because it allows us to manage the lifecycle of the load balancer in front of the Istio ingressgateway separate from the lifecycle of the deployment. For example, having full control over the revision selector of the `Service` and when to make the traffic switchover when doing a canary upgrade. 
 
 ```bash
@@ -486,11 +514,6 @@ NOTE: If you have already completed the installation using IstioLifecycleManager
 Here we will use Argo CD to demonstrate how to deploy and manage Istio using helm.
 
 First, deploy the `istio-base` helm chart.
-
-```bash
-export ISTIO_VERSION=1.19.6
-export ISTIO_REVISION=1-19-6
-```
 
 ```bash
 kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f- <<EOF
