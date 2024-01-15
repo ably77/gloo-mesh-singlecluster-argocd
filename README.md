@@ -102,8 +102,8 @@ GLOO_MESH_LICENSE_KEY=<input_license_key_here>
 Provide the Istio version and revision label:
 
 ```bash
-export ISTIO_VERSION=1.19.6
-export ISTIO_REVISION=1-19-6
+export ISTIO_VERSION=1.19.3
+export ISTIO_REVISION=1-19
 ```
 
 Provide the Gloo Mesh version:
