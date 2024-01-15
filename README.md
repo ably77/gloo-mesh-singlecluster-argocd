@@ -473,7 +473,7 @@ Since we can treat the `IstioLifecycleManager` and `GatewayLifecycleManager` the
 
 Note the use of the annotation `argocd.argoproj.io/sync-wave` in each manifest, which can help with the deployment ordering of each component. The order of operations would go least to greatest. More on [Argo CD sync-waves](https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/#how-do-i-configure-waves).
 
-The corresponding Argo Application would look like this:
+The corresponding Argo Application would look like this, but note that the example here is set to use a cluster named `gloo`, Istio version `1.19.3-solo` and Istio revision set to `1-19` and would require a PR to this repo to be re-configured.
 
 ```
 apiVersion: argoproj.io/v1alpha1

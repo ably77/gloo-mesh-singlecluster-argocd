@@ -1,7 +1,7 @@
 apiVersion: admin.gloo.solo.io/v2
 kind: IstioLifecycleManager
 metadata:
-  name: istiod-control-plane-mgmt
+  name: istiod-control-plane
   namespace: gloo-mesh
   annotations:
     argocd.argoproj.io/sync-wave: "-8"
@@ -14,12 +14,8 @@ spec:
       - name: gloo
         # If set to true, the spec for this revision is applied in the cluster
         defaultRevision: true
-      #- name: cluster1
-      #  # If set to true, the spec for this revision is applied in the cluster
-      #  defaultRevision: true
-      #- name: cluster2
-      #  # If set to true, the spec for this revision is applied in the cluster
-      #  defaultRevision: true
+      # When set to true, the lifecycle manager allows you to perform in-place upgrades by skipping checks that are required for canary upgrades
+      skipUpgradeValidation: true
       istioOperatorSpec:
         # Only the control plane components are installed
         # (https://istio.io/latest/docs/setup/additional-setup/config-profiles/)
@@ -41,12 +37,6 @@ spec:
           defaultConfig:
             # Wait for the istio-proxy to start before starting application pods
             holdApplicationUntilProxyStarts: true
-            # Enable Gloo metrics service. Required for Gloo UI
-            envoyMetricsService:
-              address: gloo-mesh-agent.gloo-mesh:9977
-            # Enable Gloo accesslog service. Required for Gloo Access Logging
-            envoyAccessLogService:
-              address: gloo-mesh-agent.gloo-mesh:9977
             proxyMetadata:
               # Enable Istio agent to handle DNS requests for known hosts
               # Unknown hosts are automatically resolved using upstream DNS servers
@@ -64,17 +54,18 @@ spec:
         values:
           global:
             meshID: mesh1
-            network: "network1"
+            network: gloo
             multiCluster:
-              clusterName: mgmt
+              clusterName: gloo
         # Traffic management
         components:
           pilot:
             k8s:
               env:
-            # Allow multiple trust domains (Required for Gloo Mesh east/west routing)
-              - name: PILOT_SKIP_VALIDATE_TRUST_DOMAIN
-                value: "true"
+              # Disable selecting workload entries for local service routing.
+              # Required for Gloo VirtualDestinaton functionality.
+              - name: PILOT_ENABLE_K8S_SELECT_WORKLOAD_ENTRIES
+                value: "false"
               # Reload cacerts when cert-manager changes it
               - name: AUTO_RELOAD_PLUGIN_CERTS
                 value: "true"

@@ -1,4 +1,3 @@
----
 apiVersion: admin.gloo.solo.io/v2
 kind: GatewayLifecycleManager
 metadata:
@@ -14,7 +13,7 @@ spec:
       clusters:
       - name: gloo
         # If set to true, the spec for this revision is applied in the cluster
-        activeGateway: false
+        activeGateway: true
       istioOperatorSpec:
         # No control plane components are installed
         profile: empty
