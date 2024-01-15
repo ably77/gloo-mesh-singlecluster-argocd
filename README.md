@@ -4,7 +4,9 @@
 GitOps is becoming increasingly popular approach to manage Kubernetes components. It works by using Git as a single source of truth for declarative infrastructure and applications, allowing your application definitions, configurations, and environments to be declarative and version controlled. This helps to make these workflows automated, auditable, and easy to understand.
 
 ## Purpose of this Tutorial
-The main goal of this tutorial is to showcase how Gloo Mesh components can seamlessly integrate into a GitOps workflow, with Argo CD being our tool of choice. We'll guide you through the installation of Argo CD, Gloo Platform, Istio, and finally, we'll explore the Gloo Mesh Dashboard.
+The main goal of this tutorial is to showcase how Gloo Mesh components can seamlessly integrate into a GitOps workflow, with Argo CD being our tool of choice. We'll guide you through the installation of Argo CD, Gloo Platform, Istio, and we'll explore the Gloo Mesh Dashboard. 
+
+Beyond the installation walkthroughs, we'll engage in practical exercises specifically designed to showcase the robustness of the system. These exercises serve as a technical demonstration of how the pull/sync mechanism offered by Argo CD enhances the reliability and resilience of your service mesh deployment. 
 
 ## High Level Architecture
 ![High Level Architecture](.images/single-cluster-arch1.png)
@@ -600,6 +602,92 @@ meshctl dashboard
 
 At this point, you should have ArgoCD, Gloo Mesh, and Istio installed on the cluster!
 ![Gloo Mesh UI](.images/gmui3.png)
+
+## Resiliency Testing
+From a resiliency perspective, deploying Gloo Mesh with Argo CD or any other GitOps tool provides a few clear benefits to a manual or traditional push based approach.
+
+- Declarative Configuration: Argo CD enables the definition of the desired state of your system through declarative configuration stored in Git, ensuring a clear and version-controlled source of truth.
+
+- Automated Synchronization: The pull-based approach of Argo CD ensures automatic synchronization between the desired state in Git and the actual state in the Kubernetes cluster, minimizing manual intervention and reducing the risk of configuration drift.
+
+- Self-Healing Mechanisms: Argo CD can automatically detect discrepancies between the desired and actual states and initiate corrective actions, contributing to a self-healing mechanism that enhances the overall resilience of the deployed components.
+
+
+We have already demonstrated using declarative configuration and Git as our source of truth when deploying and installing Gloo Mesh, but lets take a look at auto sync and self-healing.
+
+### Scenario 1: 
+
+For Kubernetes Pods, in the event of a pod failure the scheduler will automatically start a new pod. But what happens if the Deployment is deleted?
+
+In Kubernetes, removing a Deployment such as the `gloo-mesh-mgmt-server` is assumed to be part of a controlled process. Kubernetes does not automatically create replacement Pods in this case. Deleting a Deployment is often done when you want to intentionally scale down or update the application.
+
+Let's take a look at the Gloo Mesh Deployment
+
+```bash
+kubectl get deployments -n gloo-mesh --context "${MY_CLUSTER_CONTEXT}"
+```
+
+Output should look similar to below
+```
+NAME                     READY   UP-TO-DATE   AVAILABLE   AGE
+gloo-telemetry-gateway   1/1     1            1           66m
+gloo-mesh-mgmt-server    1/1     1            1           66m
+gloo-mesh-redis          1/1     1            1           66m
+gloo-mesh-ui             1/1     1            1           66m
+gloo-mesh-agent          1/1     1            1           66m
+prometheus-server        1/1     1            1           66m
+```
+
+With Argo CD, in the `Application` resource we can set `selfHeal: true` and `prune: true` options so that if a Deployment in an application controlled by Argo CD is deleted, it will trigger Argo CD's reconciliation process. This includes self-healing mechanisms to ensure the desired state of the Kubernetes cluster is declared state in Git and automatically takes corrective actions to make the system to manual changes
+
+Since we deployed Gloo Mesh using Argo CD, let's create some real chaos and delete all of the deployments in the `gloo-mesh` namespace and see what happens
+
+```bash
+kubectl delete deployments --all -n gloo-mesh --context "${MY_CLUSTER_CONTEXT}"
+```
+
+In a typical installation, all of the deployments would be deleted permanently. Let's take a look at what happens when we are using the self-healing capabilities of Argo CD
+
+```bash
+kubectl get deployments -n gloo-mesh --context "${MY_CLUSTER_CONTEXT}"
+```
+
+You can see almost immediately that all of the deployments are re-synced to the cluster
+
+```
+NAME                     READY   UP-TO-DATE   AVAILABLE   AGE
+gloo-mesh-mgmt-server    0/1     1            0           7s
+gloo-mesh-redis          0/1     1            0           7s
+gloo-telemetry-gateway   1/1     1            1           7s
+gloo-mesh-agent          0/1     1            0           2s
+gloo-mesh-ui             0/1     1            0           2s
+prometheus-server        0/1     1            0           2s
+```
+
+### Scenario 2:
+Similarly to keeping the health of our Applications and Infra alive, we can benefit from self-healing capabilities by syncing our application networking configuration as well. Let's test another scenario in which a piece of our service mesh configuration is mistakenly removed from the cluster and see what happens
+
+Let's take a look at our route tables
+
+```bash
+kubectl get routetables -A --context "${MY_CLUSTER_CONTEXT}"
+```
+
+Output should look similar to below
+
+```bash
+NAMESPACE        NAME                       AGE
+gloo-mesh        gloo-mesh-ui-delegate-rt   94m
+istio-gateways   ops-routetable-80          94m
+```
+
+Now let's take down our Ops team routetable, which manages all of the routes to port 80 on our ingress gateway. In our current environment this would just be the Gloo Mesh UI, but a similar scenario in a large environment could have significant consequences affecting multiple teams.
+
+```bash
+kubectl delete routetables -n istio-gateways ops-routetable-80 --context "${MY_CLUSTER_CONTEXT}"
+```
+
+Again we see Argo CD to the rescue! Instead of suffering a total outage, Argo CD detected a drift in the desired state and reconfigured the Ops team route table automatically.
 
 ## Cleanup
 To uninstall, you can delete the Argo Applications
