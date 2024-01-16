@@ -24,8 +24,6 @@ spec:
           serviceType: ClusterIP
           registerCluster: true
           createGlobalWorkspace: true
-          ports:
-            healthcheck: 8091
         prometheus:
           enabled: true
         redis:

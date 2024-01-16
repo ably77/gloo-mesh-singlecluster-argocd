@@ -181,8 +181,6 @@ spec:
           serviceType: LoadBalancer
           registerCluster: true
           createGlobalWorkspace: true
-          ports:
-            healthcheck: 8091
         prometheus:
           enabled: true
         redis:
@@ -481,7 +479,8 @@ Note the use of the annotation `argocd.argoproj.io/sync-wave` in each manifest, 
 
 The corresponding Argo Application would look like this, but note that the example here is set to use a cluster named `gloo`, Istio version `1.19.3-solo` and Istio revision set to `1-19` and would require a PR to this repo to be re-configured.
 
-```
+```bash
+kubectl apply --context ${MY_CLUSTER_CONTEXT} -f - <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -509,6 +508,7 @@ spec:
         duration: 5s
         factor: 2
         maxDuration: 3m0s
+EOF
 ```
 
 In the future, we can commit more Istio configuration to this directory to continue building out our cluster, or even to deploy Istio onto other newly onboarded workload clusters.
@@ -832,12 +832,15 @@ Since we deployed Gloo Mesh using Argo CD, let's create some real chaos and dele
 
 ```bash
 kubectl delete deployments --all -n gloo-mesh --context "${MY_CLUSTER_CONTEXT}"
+kubectl delete secrets --all -n gloo-mesh --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 In a typical installation, all of the deployments would be deleted permanently. Let's take a look at what happens when we are using the self-healing capabilities of Argo CD
 
 ```bash
+kubectl get pods -n gloo-mesh --context "${MY_CLUSTER_CONTEXT}"
 kubectl get deployments -n gloo-mesh --context "${MY_CLUSTER_CONTEXT}"
+kubectl get secrets -n gloo-mesh --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 You can see almost immediately that all of the deployments are re-synced to the cluster
