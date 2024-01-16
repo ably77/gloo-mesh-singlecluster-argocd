@@ -553,7 +553,7 @@ Now, lets deploy the Istio control plane:
 
 Get the Hub value from the [Solo support page for Istio Solo images](https://support.solo.io/hc/en-us/articles/4414409064596). The value is present within the `Solo.io Istio Versioning Repo key` section
 ```bash
-export HUB=
+export HUB=us-docker.pkg.dev/gloo-mesh/istio-workshops
 ```
 
 ```bash
