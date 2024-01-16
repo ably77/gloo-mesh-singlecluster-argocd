@@ -77,12 +77,12 @@ until kubectl apply -k https://github.com/solo-io/gitops-library.git/argocd/depl
 
 Check deployment status:
 ```bash
-kubectl --context ${MY_CLUSTER_CONTEXT} -n argocd rollout status deploy/argocd-applicationset-controller
-kubectl --context ${MY_CLUSTER_CONTEXT} -n argocd rollout status deploy/argocd-dex-server
-kubectl --context ${MY_CLUSTER_CONTEXT} -n argocd rollout status deploy/argocd-notifications-controller
-kubectl --context ${MY_CLUSTER_CONTEXT} -n argocd rollout status deploy/argocd-redis
-kubectl --context ${MY_CLUSTER_CONTEXT} -n argocd rollout status deploy/argocd-repo-server
-kubectl --context ${MY_CLUSTER_CONTEXT} -n argocd rollout status deploy/argocd-server
+kubectl --context "${MY_CLUSTER_CONTEXT}" -n argocd rollout status deploy/argocd-applicationset-controller
+kubectl --context "${MY_CLUSTER_CONTEXT}" -n argocd rollout status deploy/argocd-dex-server
+kubectl --context "${MY_CLUSTER_CONTEXT}" -n argocd rollout status deploy/argocd-notifications-controller
+kubectl --context "${MY_CLUSTER_CONTEXT}" -n argocd rollout status deploy/argocd-redis
+kubectl --context "${MY_CLUSTER_CONTEXT}" -n argocd rollout status deploy/argocd-repo-server
+kubectl --context "${MY_CLUSTER_CONTEXT}" -n argocd rollout status deploy/argocd-server
 ```
 
 Check to see Argo CD status.
@@ -299,7 +299,7 @@ The following instructions will configure the lifecycle manager CRDs directly, b
 Lets deploy the Istio control plane using the `IstioLifecycleManager`
 
 ```bash
-kubectl apply --context ${MY_CLUSTER_CONTEXT} -f - <<EOF
+kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f - <<EOF
 apiVersion: admin.gloo.solo.io/v2
 kind: IstioLifecycleManager
 metadata:
@@ -388,10 +388,10 @@ istiod-1-19-78b54758c5-q852m   1/1     Running   0          2m16s
 Next we will configure the `istio-gateways` namespace and Kubernetes service for the gateway. Separating the Kubernetes `Service` is recommended because it allows us to manage the lifecycle of the load balancer in front of the Istio ingressgateway separate from the lifecycle of the deployment. For example, having full control over the revision selector of the `Service` and when to make the traffic switchover when doing a canary upgrade. 
 
 ```bash
-kubectl --context ${MY_CLUSTER_CONTEXT} create ns istio-gateways
-kubectl --context ${MY_CLUSTER_CONTEXT} label namespace istio-gateways istio.io/rev=1-19 --overwrite
+kubectl --context "${MY_CLUSTER_CONTEXT}" create ns istio-gateways
+kubectl --context "${MY_CLUSTER_CONTEXT}" label namespace istio-gateways istio.io/rev=1-19 --overwrite
 
-kubectl apply --context ${MY_CLUSTER_CONTEXT} -f - <<EOF
+kubectl apply --context  -f - <<EOF
 apiVersion: v1
 kind: Service
 metadata:
@@ -428,7 +428,7 @@ EOF
 Now configure the `GatewayLifecycleManager`
 
 ```bash
-kubectl apply --context ${MY_CLUSTER_CONTEXT} -f - <<EOF
+kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f - <<EOF
 apiVersion: admin.gloo.solo.io/v2
 kind: GatewayLifecycleManager
 metadata:
@@ -487,7 +487,7 @@ Note the use of the annotation `argocd.argoproj.io/sync-wave` in each manifest, 
 The corresponding Argo Application would look like this, but note that the example here is set to use a cluster named `gloo`, Istio version `1.19.3-solo` and Istio revision set to `1-19` and would require a PR to this repo to be re-configured.
 
 ```bash
-kubectl apply --context ${MY_CLUSTER_CONTEXT} -f - <<EOF
+kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f - <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -712,7 +712,7 @@ istio-ingressgateway-1-19-6-6575484979-5fbn7   1/1     Running   0          36m
 Lastly, lets configure our default mesh config by deploying an Argo Application that is configured to deploy any valid YAML configuration in the `easybutton/mesh-config` directory onto the cluster.
 
 ```
-kubectl apply --context ${MY_CLUSTER_CONTEXT} -f - <<EOF
+kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f - <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -748,12 +748,12 @@ In this repo is a simple `VirtualGateway` configuration. In the future, we can c
 Confirm that the virtual gateway was configured:
 
 ```bash
-kubectl get virtualgateway -n istio-gateways --context ${MY_CLUSTER_CONTEXT}
+kubectl get virtualgateway -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 Output should look similar to below
 ```
-% kubectl get virtualgateway -n istio-gateways --context ${MY_CLUSTER_CONTEXT}
+% kubectl get virtualgateway -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
 NAME             AGE
 north-south-gw   100s
 ```
@@ -761,13 +761,13 @@ north-south-gw   100s
 Confirm that two route tables were created
 
 ```bash
-kubectl get routetables -A --context ${MY_CLUSTER_CONTEXT}
+kubectl get routetables -A --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 Output should look similar to below
 
 ```
-% kubectl get routetables -A --context ${MY_CLUSTER_CONTEXT}
+% kubectl get routetables -A --context "${MY_CLUSTER_CONTEXT}"
 NAMESPACE        NAME                       AGE
 istio-gateways   ops-routetable-80          2m47s
 gloo-mesh        gloo-mesh-ui-delegate-rt   2m47s
@@ -778,7 +778,7 @@ gloo-mesh        gloo-mesh-ui-delegate-rt   2m47s
 The route table above exposes the Gloo Mesh UI on port 80 of the Istio Ingress Gateway we deployed earlier. You should be able to access it with the following command:
 
 ```bash
-echo "access the dashboard at http://$(kubectl --context ${MY_CLUSTER_CONTEXT} get svc -n istio-gateways --selector=istio=ingressgateway -o jsonpath='{.items[*].status.loadBalancer.ingress[0].*}')"
+echo "access the dashboard at http://$(kubectl --context "${MY_CLUSTER_CONTEXT}" get svc -n istio-gateways --selector=istio=ingressgateway -o jsonpath='{.items[*].status.loadBalancer.ingress[0].*}')"
 ```
 
 ### Visualize in Gloo Mesh UI with port-forwarding
@@ -984,9 +984,9 @@ You can check to see that Gloo Mesh, Istiod and the Istio ingressgateways, and o
 ```bash
 kubectl get pods -n gloo-mesh --context "${MY_CLUSTER_CONTEXT}" && \
 kubectl get pods -n istio-system --context "${MY_CLUSTER_CONTEXT}" && \
-kubectl get pods -n istio-gateways --context "${MY_CLUSTER_CONTEXT}" \ 
-kubectl get virtualgateway -n istio-gateways --context ${MY_CLUSTER_CONTEXT} \
-kubectl get routetables -A --context ${MY_CLUSTER_CONTEXT}
+kubectl get pods -n istio-gateways --context "${MY_CLUSTER_CONTEXT}" && \
+kubectl get virtualgateway -n istio-gateways --context "${MY_CLUSTER_CONTEXT}" && \
+kubectl get routetables -A --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 ### Visualize in Gloo Mesh UI using the gateway
@@ -994,7 +994,7 @@ kubectl get routetables -A --context ${MY_CLUSTER_CONTEXT}
 The route table above exposes the Gloo Mesh UI on port 80 of the Istio Ingress Gateway we deployed earlier. You should be able to access it with the following command:
 
 ```bash
-echo "access the dashboard at http://$(kubectl --context ${MY_CLUSTER_CONTEXT} get svc -n istio-gateways --selector=istio=ingressgateway -o jsonpath='{.items[*].status.loadBalancer.ingress[0].*}')"
+echo "access the dashboard at http://$(kubectl --context "${MY_CLUSTER_CONTEXT}" get svc -n istio-gateways --selector=istio=ingressgateway -o jsonpath='{.items[*].status.loadBalancer.ingress[0].*}')"
 ```
 
 ### Visualize in Gloo Mesh UI with port-forwarding
