@@ -882,14 +882,25 @@ Again we see Argo CD to the rescue! Instead of suffering a total outage, Argo CD
 ## Cleanup
 To uninstall, you can delete the Argo Applications
 ```bash
+# mesh config
 kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd mesh-config 
+
+# helm install
 kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd istio-ingressgateway
 kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd istiod
 kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd istio-base
+
+# ilm install
 kubectl --context "${MY_CLUSTER_CONTEXT}" delete service -n istio-gateways istio-ingressgateway
-kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd istio-lifecyclemanager
+kubectl --context "${MY_CLUSTER_CONTEXT}" delete gatewaylifecyclemanager -n gloo-mesh istio-ingressgateway
+kubectl --context "${MY_CLUSTER_CONTEXT}" delete istiolifecyclemanager -n gloo-mesh istiod-control-plane
+
+# gloo platform
 kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd gloo-platform-helm
 kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd gloo-platform-crds
+
+# secrets
+kubectl --context "${MY_CLUSTER_CONTEXT}" delete secrets -n gloo-mesh --all
 ```
 
 ## Lets have some fun
