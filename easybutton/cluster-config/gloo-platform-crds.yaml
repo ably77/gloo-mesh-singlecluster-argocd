@@ -13,7 +13,12 @@ spec:
   source:
     chart: gloo-platform-crds
     repoURL: https://storage.googleapis.com/gloo-platform/helm-charts
-    targetRevision: 2.4.4
+    targetRevision: 2.5.0
+    helm:
+      values: |
+        featureGates:
+          ExternalWorkloads: true
+        enabledExperimentalApi: "{externalworkloads.networking.gloo.solo.io/v2alpha1,spireregistrationentries.internal.gloo.solo.io/v2alpha1}"   
   syncPolicy:
     automated:
       prune: true

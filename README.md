@@ -91,10 +91,25 @@ At this point, we should be able to access our Argo CD server using port-forward
 kubectl port-forward svc/argocd-server -n argocd 9999:443 --context "${MY_CLUSTER_CONTEXT}"
 ```
 
-## Provide Gloo Mesh Enterprise License Key variable
+## Set Environment variables
+
 Gloo Mesh Enterprise requires a Trial License Key:
+
 ```bash
 GLOO_MESH_LICENSE_KEY=<input_license_key_here>
+```
+
+Provide the Istio version and revision label:
+
+```bash
+export ISTIO_VERSION=1.19.3
+export ISTIO_REVISION=1-19
+```
+
+Provide the Gloo Mesh version:
+
+```bash
+export GLOO_MESH_VERSION=2.5.0
 ```
 
 ## Installing Gloo Mesh
@@ -102,8 +117,6 @@ Gloo Mesh can be installed and configured easily using Helm + Argo CD. To instal
 
 First we will deploy the Gloo Platform CRD helm chart using an Argo Application
 ```bash
-export GLOO_MESH_VERSION=2.4.7;
-
 kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f- <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -119,6 +132,11 @@ spec:
     chart: gloo-platform-crds
     repoURL: https://storage.googleapis.com/gloo-platform/helm-charts
     targetRevision: "${GLOO_MESH_VERSION}"
+    helm:
+      values: |
+        featureGates:
+          ExternalWorkloads: true
+        enabledExperimentalApi: "{externalworkloads.networking.gloo.solo.io/v2alpha1,spireregistrationentries.internal.gloo.solo.io/v2alpha1}"     
   syncPolicy:
     automated:
       prune: true
@@ -163,8 +181,6 @@ spec:
           serviceType: LoadBalancer
           registerCluster: true
           createGlobalWorkspace: true
-          ports:
-            healthcheck: 8091
         prometheus:
           enabled: true
         redis:
@@ -195,10 +211,11 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+  # commenting out, not sure if necessary
   # ignore the self-signed certs that are being generated automatically    
-  ignoreDifferences:
-  - group: v1
-    kind: Secret    
+  #ignoreDifferences:
+  #- group: v1
+  #  kind: Secret    
 EOF
 ```
 
@@ -268,16 +285,206 @@ kubectl port-forward svc/gloo-mesh-ui -n gloo-mesh 8090:8090 --context "${MY_CLU
 
 ## Install Istio with IstioLifecycleManager
 
-Now that we have Gloo Mesh installed, we can use the IstioLifecycleManager CRD to deploy and manage Istio across all of our workload clusters. This is especially helpful at scale when it is required to update Istio to a new image image for a security patch, or upgrading to a new release. 
+Now that we have Gloo Mesh installed, we can use the IstioLifecycleManager CRD to deploy and manage Istio across all of our workload clusters. This allows us to treat our Istio deployment like any other CRD in the Kubernetes cluster, rather than a separate deployment mechanism such as using `helm install` to deploy a chart. While there is nothing wrong the Helm-based approach (and in the next section of this blog we will also review using Helm + Argo CD to install Istio) the IstioLifecycleManager API was designed to provide value at scale, such as being able to target multiple clusters at a time to handle day 2 operations such as updating Istio to a new image for a security patch, or upgrading to a new release. 
 
-Since we can treat the `IstioLifecycleManager` and `GatewayLifecycleManager` the same as any other Kubernetes CRD, we can deploy Istio on our cluster by using an Argo Application that is configured to deploy any valid YAML configuration in the `/lifecyclemanager` [directory in this repo](https://github.com/ably77/gloo-mesh-singlecluster-argocd/tree/main/istiolifecyclemanager)
+The following instructions will configure the lifecycle manager CRDs directly, but afterwards we will explore how to automate this with an Argo CD Application. 
 
+Lets deploy the Istio control plane using the `IstioLifecycleManager`
+
+```bash
+kubectl apply --context ${MY_CLUSTER_CONTEXT} -f - <<EOF
+apiVersion: admin.gloo.solo.io/v2
+kind: IstioLifecycleManager
+metadata:
+  name: istiod-control-plane
+  namespace: gloo-mesh
+spec:
+  installations:
+      # The revision for this installation, such as 1-19
+    - revision: ${ISTIO_REVISION}
+      # List all workload clusters to install Istio into
+      clusters:
+      - name: ${MY_CLUSTER_NAME}
+        # If set to true, the spec for this revision is applied in the cluster
+        defaultRevision: true
+      # When set to true, the lifecycle manager allows you to perform in-place upgrades by skipping checks that are required for canary upgrades
+      skipUpgradeValidation: true
+      istioOperatorSpec:
+        # Only the control plane components are installed
+        # (https://istio.io/latest/docs/setup/additional-setup/config-profiles/)
+        profile: minimal
+        # Solo.io Istio distribution repository; required for Gloo Istio.
+        # You get the repo key from your Solo Account Representative.
+        hub: us-docker.pkg.dev/gloo-mesh/istio-workshops
+        # Any Solo.io Gloo Istio tag
+        tag: ${ISTIO_VERSION}-solo
+        namespace: istio-system
+        # Mesh configuration
+        meshConfig:
+          # Enable access logging only if using.
+          accessLogFile: /dev/stdout
+          # Encoding for the proxy access log (TEXT or JSON). Default value is TEXT.
+          accessLogEncoding: JSON
+          # Enable span tracing only if using.
+          enableTracing: true
+          defaultConfig:
+            # Wait for the istio-proxy to start before starting application pods
+            holdApplicationUntilProxyStarts: true
+            proxyMetadata:
+              # Enable Istio agent to handle DNS requests for known hosts
+              # Unknown hosts are automatically resolved using upstream DNS servers
+              # in resolv.conf (for proxy-dns)
+              ISTIO_META_DNS_CAPTURE: "true"
+              # Enable automatic address allocation (for proxy-dns)
+              ISTIO_META_DNS_AUTO_ALLOCATE: "true"
+          # Set the default behavior of the sidecar for handling outbound traffic
+          # from the application
+          outboundTrafficPolicy:
+            mode: ALLOW_ANY
+          # The administrative root namespace for Istio configuration
+          rootNamespace: istio-system
+        # Traffic management
+        values:
+          global:
+            meshID: mesh1
+            network: ${MY_CLUSTER_NAME}
+            multiCluster:
+              clusterName: ${MY_CLUSTER_NAME}
+        # Traffic management
+        components:
+          pilot:
+            k8s:
+              env:
+              # Disable selecting workload entries for local service routing.
+              # Required for Gloo VirtualDestinaton functionality.
+              - name: PILOT_ENABLE_K8S_SELECT_WORKLOAD_ENTRIES
+                value: "false"
+              # Reload cacerts when cert-manager changes it
+              - name: AUTO_RELOAD_PLUGIN_CERTS
+                value: "true"
+EOF
 ```
+
+You can check to see that istiod has been deployed
+
+```bash
+kubectl get pods -n istio-system --context "${MY_CLUSTER_CONTEXT}"
+```
+
+Output should look similar to below:
+
+```bash
+NAME                           READY   STATUS    RESTARTS   AGE
+istiod-1-19-78b54758c5-q852m   1/1     Running   0          2m16s
+```
+
+Next we will configure the `istio-gateways` namespace and Kubernetes service for the gateway. Separating the Kubernetes `Service` is recommended because it allows us to manage the lifecycle of the load balancer in front of the Istio ingressgateway separate from the lifecycle of the deployment. For example, having full control over the revision selector of the `Service` and when to make the traffic switchover when doing a canary upgrade. 
+
+```bash
+kubectl --context ${MY_CLUSTER_CONTEXT} create ns istio-gateways
+kubectl --context ${MY_CLUSTER_CONTEXT} label namespace istio-gateways istio.io/rev=1-19 --overwrite
+
+kubectl apply --context ${MY_CLUSTER_CONTEXT} -f - <<EOF
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: istio-ingressgateway
+    istio: ingressgateway
+  annotations:
+    # uncomment if using the default AWS Cloud in-tree controller 
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    # uncomment if using the default AWS LB controller
+    #service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+    #service.beta.kubernetes.io/aws-load-balancer-type: "external"
+    #service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+  name: istio-ingressgateway
+  namespace: istio-gateways
+spec:
+  ports:
+  - name: http2
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  - name: https
+    port: 443
+    protocol: TCP
+    targetPort: 8443
+  selector:
+    app: istio-ingressgateway
+    istio: ingressgateway
+    revision: 1-19
+  type: LoadBalancer
+EOF
+```
+
+Now configure the `GatewayLifecycleManager`
+
+```bash
+kubectl apply --context ${MY_CLUSTER_CONTEXT} -f - <<EOF
+apiVersion: admin.gloo.solo.io/v2
+kind: GatewayLifecycleManager
+metadata:
+  name: istio-ingressgateway
+  namespace: gloo-mesh
+spec:
+  installations:
+      # The revision for this installation, such as 1-19
+    - gatewayRevision: ${ISTIO_REVISION}
+      # List all workload clusters to install Istio into
+      clusters:
+      - name: ${MY_CLUSTER_NAME}
+        # If set to true, the spec for this revision is applied in the cluster
+        activeGateway: true
+      istioOperatorSpec:
+        # No control plane components are installed
+        profile: empty
+        # Solo.io Istio distribution repository; required for Gloo Istio.
+        # You get the repo key from your Solo Account Representative.
+        hub: us-docker.pkg.dev/gloo-mesh/istio-workshops
+        # The Solo.io Gloo Istio tag
+        tag: ${ISTIO_VERSION}-solo
+        values:
+          gateways:
+            istio-ingressgateway:
+              customService: true
+        components:
+          ingressGateways:
+            - name: istio-ingressgateway
+              namespace: istio-gateways
+              enabled: true
+              label:
+                istio: ingressgateway
+EOF
+```
+
+You can check to see that the Istio ingressgateway has been deployed
+
+```bash
+kubectl get pods -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
+```
+
+Output should look similar to below:
+
+```bash
+NAME                                        READY   STATUS    RESTARTS   AGE
+istio-ingressgateway-1-19-5bc944987-882ls   1/1     Running   0          55s
+```
+
+### Configuring IstioLifecycleManager or GatewayLifecycleManager with Argo CD
+
+Since we can treat the `IstioLifecycleManager` and `GatewayLifecycleManager` the same as any other Kubernetes CRD, we can deploy Istio on our cluster by using an Argo Application that is configured to deploy any valid YAML configuration in the `/lifecyclemanager` [directory in this repo](https://github.com/ably77/gloo-mesh-singlecluster-argocd/tree/main/istiolifecyclemanager). This will allow us to configure all of the steps we just did with one Argo CD `Application` resource.
+
+Note the use of the annotation `argocd.argoproj.io/sync-wave` in each manifest, which can help with the deployment ordering of each component. The order of operations would go least to greatest. More on [Argo CD sync-waves](https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/#how-do-i-configure-waves).
+
+The corresponding Argo Application would look like this, but note that the example here is set to use a cluster named `gloo`, Istio version `1.19.3-solo` and Istio revision set to `1-19` and would require a PR to this repo to be re-configured.
+
+```bash
 kubectl apply --context ${MY_CLUSTER_CONTEXT} -f - <<EOF
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: istio-lifecyclemanager
+  name: istio-lifecyclemanager-deployments
   namespace: argocd
   finalizers:
   - resources-finalizer.argocd.argoproj.io
@@ -304,21 +511,7 @@ spec:
 EOF
 ```
 
-You can check to see that istiod and the istio ingressgateways have been deployed
-```bash
-kubectl get pods -n istio-system --context "${MY_CLUSTER_CONTEXT}" && \
-kubectl get pods -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
-```
-
-Output should look similar to below:
-```bash
-NAME                           READY   STATUS    RESTARTS   AGE
-istiod-1-19-78b54758c5-q852m   1/1     Running   0          2m16s
-NAME                                        READY   STATUS    RESTARTS   AGE
-istio-ingressgateway-1-19-5bc944987-q8glz   1/1     Running   0          2m
-```
-
-In the future, we can commit more Istio configuration to this directory to continue building out our cluster, or even to deploy Istio on to newly onboarded workload clusters.
+In the future, we can commit more Istio configuration to this directory to continue building out our cluster, or even to deploy Istio onto other newly onboarded workload clusters.
 
 ## Installing Istio with Helm
 NOTE: If you have already completed the installation using IstioLifecycleManager, you can skip this step completely.
@@ -326,11 +519,6 @@ NOTE: If you have already completed the installation using IstioLifecycleManager
 Here we will use Argo CD to demonstrate how to deploy and manage Istio using helm.
 
 First, deploy the `istio-base` helm chart.
-
-```bash
-export ISTIO_VERSION=1.19.6
-export ISTIO_REVISION=1-19-6
-```
 
 ```bash
 kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f- <<EOF
@@ -365,7 +553,7 @@ Now, lets deploy the Istio control plane:
 
 Get the Hub value from the [Solo support page for Istio Solo images](https://support.solo.io/hc/en-us/articles/4414409064596). The value is present within the `Solo.io Istio Versioning Repo key` section
 ```bash
-export HUB=
+export HUB=us-docker.pkg.dev/gloo-mesh/istio-workshops
 ```
 
 ```bash
@@ -644,12 +832,15 @@ Since we deployed Gloo Mesh using Argo CD, let's create some real chaos and dele
 
 ```bash
 kubectl delete deployments --all -n gloo-mesh --context "${MY_CLUSTER_CONTEXT}"
+kubectl delete secrets --all -n gloo-mesh --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 In a typical installation, all of the deployments would be deleted permanently. Let's take a look at what happens when we are using the self-healing capabilities of Argo CD
 
 ```bash
+kubectl get pods -n gloo-mesh --context "${MY_CLUSTER_CONTEXT}"
 kubectl get deployments -n gloo-mesh --context "${MY_CLUSTER_CONTEXT}"
+kubectl get secrets -n gloo-mesh --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 You can see almost immediately that all of the deployments are re-synced to the cluster
