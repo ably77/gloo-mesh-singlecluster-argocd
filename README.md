@@ -886,6 +886,7 @@ kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd mesh-con
 kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd istio-ingressgateway
 kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd istiod
 kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd istio-base
+kubectl --context "${MY_CLUSTER_CONTEXT}" delete service -n istio-gateways istio-ingressgateway
 kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd istio-lifecyclemanager
 kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd gloo-platform-helm
 kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd gloo-platform-crds
