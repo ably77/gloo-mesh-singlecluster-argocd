@@ -56,7 +56,8 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+  # commenting out, not sure if necessary
   # ignore the self-signed certs that are being generated automatically    
-  ignoreDifferences:
-  - group: v1
-    kind: Secret  
+  #ignoreDifferences:
+  #- group: v1
+  #  kind: Secret  
