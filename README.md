@@ -899,12 +899,24 @@ kubectl --context "${MY_CLUSTER_CONTEXT}" delete secrets -n gloo-mesh --all
 ```
 
 ## Lets have some fun
-To streamline deployment, utilize the Argo app-of-apps pattern to manage and orchestrate the entire setup in one `Application`!
+To streamline deployment, utilize the Argo app-of-apps pattern again to manage and orchestrate the entire setup in one `Application`! 
 
-To avoid storing the license key in Git, we can enhance security by utilizing a licenseSecretKeyRef in the Helm values, necessitating the creation of the license key as a secret.
+However, since the state is committed to Git, we have a few requirements
+- Argo CD installed on the cluster (preferably fresh install)
+- Cluster context named `gloo`
+
+#### Renaming Cluster Context
+If your local clusters have a different context name, you will want to have it match the expected context name(s). In this example, we are setting the context name as `gloo`.
+
+```bash
+kubectl config rename-context <k3d-your_cluster_name> "${MY_CLUSTER_CONTEXT}"
+```
 
 ## Provide Gloo Mesh Enterprise License Key variable
-In case you havent configured it already, Gloo Mesh Enterprise requires a Trial License Key:
+In case you havent configured it already, Gloo Mesh Enterprise requires a Trial License Key
+
+To avoid storing the license key in Git, we can enhance security by utilizing a `licenseSecretKeyRef` in the Helm values, necessitating the creation of the license key as a secret.
+
 ```bash
 GLOO_MESH_LICENSE_KEY=<input_license_key_here>
 ```
