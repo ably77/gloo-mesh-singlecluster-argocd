@@ -386,7 +386,7 @@ Next we will configure the `istio-gateways` namespace and Kubernetes service for
 kubectl --context "${MY_CLUSTER_CONTEXT}" create ns istio-gateways
 kubectl --context "${MY_CLUSTER_CONTEXT}" label namespace istio-gateways istio.io/rev=1-19 --overwrite
 
-kubectl apply --context  -f - <<EOF
+kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f - <<EOF
 apiVersion: v1
 kind: Service
 metadata:
