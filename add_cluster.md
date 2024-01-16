@@ -243,7 +243,7 @@ You should see that an additional workload cluster named `cluster1` has been reg
 ## Installing Istio
 Here we will use Argo CD to demonstrate how to deploy and manage Istio using helm.
 
-First deploy the Istio base 1.19.3 helm chart to `cluster1`
+First deploy the Istio base 1.20.2 helm chart to `cluster1`
 ```
 kubectl apply --context cluster1 -f- <<EOF
 apiVersion: argoproj.io/v1alpha1
@@ -263,7 +263,7 @@ spec:
   source:
     chart: base
     repoURL: https://istio-release.storage.googleapis.com/charts
-    targetRevision: 1.19.3
+    targetRevision: 1.20.2
   syncPolicy:
     automated:
       prune: true
@@ -291,17 +291,17 @@ spec:
   source:
     chart: istiod
     repoURL: https://istio-release.storage.googleapis.com/charts
-    targetRevision: 1.19.3
+    targetRevision: 1.20.2
     helm:
       values: |
-        revision: 1-19
+        revision: 1-20
         global:
           meshID: mesh1
           multiCluster:
             clusterName: cluster1
           network: network1
           hub: us-docker.pkg.dev/gloo-mesh/istio-workshops
-          tag: 1.19.3-solo
+          tag: 1.20.2-solo
         meshConfig:
           trustDomain: cluster1
           accessLogFile: /dev/stdout
@@ -355,13 +355,13 @@ spec:
   source:
     chart: gateway
     repoURL: https://istio-release.storage.googleapis.com/charts
-    targetRevision: 1.19.3
+    targetRevision: 1.20.2
     helm:
       values: |
         # Name allows overriding the release name. Generally this should not be set
-        name: "istio-ingressgateway-1-19"
+        name: "istio-ingressgateway-1-20"
         # revision declares which revision this gateway is a part of
-        revision: "1-19"
+        revision: "1-20"
         
         replicaCount: 1
         
@@ -392,7 +392,7 @@ spec:
         
         # Labels to apply to all resources
         labels:
-          istio.io/rev: 1-19
+          istio.io/rev: 1-20
           istio: ingressgateway
   syncPolicy:
     automated:
@@ -412,9 +412,9 @@ Output should look similar to below:
 ```
 % kubectl get pods -n istio-system --context cluster1 && kubectl get pods -n istio-gateways --context cluster1
 NAME                          READY   STATUS    RESTARTS   AGE
-istiod-1-19-b6ff5fbf7-92bx9   1/1     Running   0          60s
+istiod-1-20-b6ff5fbf7-92bx9   1/1     Running   0          60s
 NAME                                         READY   STATUS    RESTARTS   AGE
-istio-ingressgateway-1-19-844fc985cd-hfbm5   1/1     Running   0          45s
+istio-ingressgateway-1-20-844fc985cd-hfbm5   1/1     Running   0          45s
 ```
 
-Now you should see that the new workload cluster has been registered with Istio 1.19.3 deployed
+Now you should see that the new workload cluster has been registered with Istio 1.20.2 deployed

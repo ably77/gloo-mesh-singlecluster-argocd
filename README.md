@@ -47,13 +47,13 @@ To deploy Istio, set the the Istio hub, version, and revision label
 
 ```bash
 export HUB=us-docker.pkg.dev/gloo-mesh/istio-workshops
-export ISTIO_VERSION=1.19.3-solo
-export ISTIO_REVISION=1-19
+export ISTIO_VERSION=1.20.2-solo
+export ISTIO_REVISION=1-20
 ```
 
 Reminder if you want a specific version of Istio or to use the officially supported images provided by Solo.io, get the Hub value from the [Solo support page for Istio Solo images](https://support.solo.io/hc/en-us/articles/4414409064596). The value is present within the `Solo.io Istio Versioning Repo key` section
 
-Otherwise, we can use the `1.19.3-solo` Istio image provided in our Solo Workshops
+Otherwise, we can use the `1.20.2-solo` Istio image provided in our Solo Workshops
 
 Provide the Gloo Mesh version:
 
@@ -297,7 +297,7 @@ metadata:
   namespace: gloo-mesh
 spec:
   installations:
-      # The revision for this installation, such as 1-19
+      # The revision for this installation, such as 1-20
     - revision: ${ISTIO_REVISION}
       # List all workload clusters to install Istio into
       clusters:
@@ -372,14 +372,14 @@ Output should look similar to below:
 
 ```bash
 NAME                           READY   STATUS    RESTARTS   AGE
-istiod-1-19-78b54758c5-q852m   1/1     Running   0          2m16s
+istiod-1-20-78b54758c5-q852m   1/1     Running   0          2m16s
 ```
 
 Next we will configure the `istio-gateways` namespace and Kubernetes service for the gateway. Separating the Kubernetes `Service` is recommended because it allows us to manage the lifecycle of the load balancer in front of the Istio ingressgateway separate from the lifecycle of the deployment. For example, having full control over the revision selector of the `Service` and when to make the traffic switchover when doing a canary upgrade. 
 
 ```bash
 kubectl --context "${MY_CLUSTER_CONTEXT}" create ns istio-gateways
-kubectl --context "${MY_CLUSTER_CONTEXT}" label namespace istio-gateways istio.io/rev=1-19 --overwrite
+kubectl --context "${MY_CLUSTER_CONTEXT}" label namespace istio-gateways istio.io/rev=1-20 --overwrite
 
 kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f - <<EOF
 apiVersion: v1
@@ -410,7 +410,7 @@ spec:
   selector:
     app: istio-ingressgateway
     istio: ingressgateway
-    revision: 1-19
+    revision: 1-20
   type: LoadBalancer
 EOF
 ```
@@ -426,7 +426,7 @@ metadata:
   namespace: gloo-mesh
 spec:
   installations:
-      # The revision for this installation, such as 1-19
+      # The revision for this installation, such as 1-20
     - gatewayRevision: ${ISTIO_REVISION}
       # List all workload clusters to install Istio into
       clusters:
@@ -465,7 +465,7 @@ Output should look similar to below:
 
 ```bash
 NAME                                        READY   STATUS    RESTARTS   AGE
-istio-ingressgateway-1-19-5bc944987-882ls   1/1     Running   0          55s
+istio-ingressgateway-1-20-5bc944987-882ls   1/1     Running   0          55s
 ```
 
 ### Configuring IstioLifecycleManager or GatewayLifecycleManager with Argo CD
@@ -474,7 +474,7 @@ Since we can treat the `IstioLifecycleManager` and `GatewayLifecycleManager` the
 
 Note the use of the annotation `argocd.argoproj.io/sync-wave` in each manifest, which can help with the deployment ordering of each component. The order of operations would go least to greatest. More on [Argo CD sync-waves](https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/#how-do-i-configure-waves).
 
-The corresponding Argo Application would look like this, but note that the example here is set to use a cluster named `gloo`, Istio version `1.19.3-solo` and Istio revision set to `1-19` and would require a PR to this repo to be re-configured.
+The corresponding Argo Application would look like this, but note that the example here is set to use a cluster named `gloo`, Istio version `1.20.2-solo` and Istio revision set to `1-20` and would require a PR to this repo to be re-configured.
 
 ```bash
 kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f - <<EOF
@@ -550,7 +550,7 @@ Now, lets deploy the Istio control plane:
 
 Reminder if you want a specific version of Istio or to use the officially supported images provided by Solo.io, get the Hub value from the [Solo support page for Istio Solo images](https://support.solo.io/hc/en-us/articles/4414409064596). The value is present within the `Solo.io Istio Versioning Repo key` section
 
-Otherwise, we can use the `1.19.3` Istio image provided in our Solo Workshops
+Otherwise, we can use the `1.20.2` Istio image provided in our Solo Workshops
 ```bash
 export HUB=us-docker.pkg.dev/gloo-mesh/istio-workshops
 ```
@@ -688,9 +688,9 @@ kubectl get pods -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
 Output should look similar to below:
 ```bash
 NAME                             READY   STATUS    RESTARTS   AGE
-istiod-1-19-6-86499c5945-bbsfl   1/1     Running   0          38m
+istiod-1-20-6-86499c5945-bbsfl   1/1     Running   0          38m
 NAME                                           READY   STATUS    RESTARTS   AGE
-istio-ingressgateway-1-19-6-6575484979-5fbn7   1/1     Running   0          36m
+istio-ingressgateway-1-20-6-6575484979-5fbn7   1/1     Running   0          36m
 ```
 
 ## Configure Mesh Config
