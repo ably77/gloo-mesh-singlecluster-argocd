@@ -109,7 +109,7 @@ export ISTIO_REVISION=1-19
 Provide the Gloo Mesh version:
 
 ```bash
-export GLOO_MESH_VERSION=2.4.7
+export GLOO_MESH_VERSION=2.5.0
 ```
 
 ## Installing Gloo Mesh
@@ -132,6 +132,11 @@ spec:
     chart: gloo-platform-crds
     repoURL: https://storage.googleapis.com/gloo-platform/helm-charts
     targetRevision: "${GLOO_MESH_VERSION}"
+    helm:
+      values: |
+        featureGates:
+          ExternalWorkloads: true
+        enabledExperimentalApi: "{externalworkloads.networking.gloo.solo.io/v2alpha1,spireregistrationentries.internal.gloo.solo.io/v2alpha1}"     
   syncPolicy:
     automated:
       prune: true
