@@ -22,15 +22,44 @@ CURRENT   NAME   CLUSTER    AUTHINFO         NAMESPACE
 ```
 
 #### Renaming Cluster Context
-If your local clusters have a different context name, you will want to have it match the expected context name(s). In this example, we are setting the context name as `gloo`.
+
+To get started, set the `MY_CLUSTER_CONTEXT` and `MY_CLUSTER_NAME` vars for our cluster
 
 ```bash
 export MY_CLUSTER_CONTEXT=gloo
 export MY_CLUSTER_NAME=gloo
 ```
 
+If your local clusters have a different context name, you will want to have it match the expected context name(s). In this example, we are setting the context name as `gloo`.
+
 ```bash
 kubectl config rename-context <k3d-your_cluster_name> "${MY_CLUSTER_CONTEXT}"
+```
+
+## Set Environment variables
+
+Gloo Mesh Enterprise requires a Trial License Key:
+
+```bash
+GLOO_MESH_LICENSE_KEY=<input_license_key_here>
+```
+
+Provide the Istio hub, version, and revision label
+
+```bash
+export HUB=us-docker.pkg.dev/gloo-mesh/istio-workshops
+export ISTIO_VERSION=1.19.3-solo
+export ISTIO_REVISION=1-19
+```
+
+Reminder if you want a specific version of Istio or to use the officially supported images provided by Solo.io, get the Hub value from the [Solo support page for Istio Solo images](https://support.solo.io/hc/en-us/articles/4414409064596). The value is present within the `Solo.io Istio Versioning Repo key` section
+
+Otherwise, we can use the `1.19.3` Istio image provided in our Solo Workshops
+
+Provide the Gloo Mesh version:
+
+```bash
+export GLOO_MESH_VERSION=2.5.0
 ```
 
 ### Installing Argo CD	
@@ -89,27 +118,6 @@ kubectl --context "${MY_CLUSTER_CONTEXT}" -n argocd patch secret argocd-secret \
 At this point, we should be able to access our Argo CD server using port-forward at http://localhost:9999
 ```
 kubectl port-forward svc/argocd-server -n argocd 9999:443 --context "${MY_CLUSTER_CONTEXT}"
-```
-
-## Set Environment variables
-
-Gloo Mesh Enterprise requires a Trial License Key:
-
-```bash
-GLOO_MESH_LICENSE_KEY=<input_license_key_here>
-```
-
-Provide the Istio version and revision label:
-
-```bash
-export ISTIO_VERSION=1.19.3
-export ISTIO_REVISION=1-19
-```
-
-Provide the Gloo Mesh version:
-
-```bash
-export GLOO_MESH_VERSION=2.5.0
 ```
 
 ## Installing Gloo Mesh
@@ -551,7 +559,9 @@ EOF
 
 Now, lets deploy the Istio control plane:
 
-Get the Hub value from the [Solo support page for Istio Solo images](https://support.solo.io/hc/en-us/articles/4414409064596). The value is present within the `Solo.io Istio Versioning Repo key` section
+Reminder if you want a specific version of Istio or to use the officially supported images provided by Solo.io, get the Hub value from the [Solo support page for Istio Solo images](https://support.solo.io/hc/en-us/articles/4414409064596). The value is present within the `Solo.io Istio Versioning Repo key` section
+
+Otherwise, we can use the `1.19.3` Istio image provided in our Solo Workshops
 ```bash
 export HUB=us-docker.pkg.dev/gloo-mesh/istio-workshops
 ```
