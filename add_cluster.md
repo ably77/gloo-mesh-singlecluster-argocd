@@ -296,7 +296,7 @@ spec:
       values: |
         revision: 1-20
         global:
-          meshID: mesh1
+          meshID: gloo-mesh
           multiCluster:
             clusterName: cluster1
           network: network1

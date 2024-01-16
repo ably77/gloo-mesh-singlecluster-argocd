@@ -343,7 +343,7 @@ spec:
         # Traffic management
         values:
           global:
-            meshID: mesh1
+            meshID: gloo-mesh
             network: ${MY_CLUSTER_NAME}
             multiCluster:
               clusterName: ${MY_CLUSTER_NAME}
@@ -577,7 +577,7 @@ spec:
       values: |
         revision: "${ISTIO_REVISION}"
         global:
-          meshID: mesh1
+          meshID: gloo-mesh
           multiCluster:
             clusterName: gloo
           network: network1
