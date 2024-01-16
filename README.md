@@ -21,7 +21,7 @@ CURRENT   NAME   CLUSTER    AUTHINFO         NAMESPACE
 *         gloo   k3d-gloo   admin@k3d-gloo   
 ```
 
-#### Renaming Cluster Context
+## Set Environment variables
 
 To get started, set the `MY_CLUSTER_CONTEXT` and `MY_CLUSTER_NAME` vars for our cluster
 
@@ -30,13 +30,12 @@ export MY_CLUSTER_CONTEXT=gloo
 export MY_CLUSTER_NAME=gloo
 ```
 
+#### Renaming Cluster Context
 If your local clusters have a different context name, you will want to have it match the expected context name(s). In this example, we are setting the context name as `gloo`.
 
 ```bash
 kubectl config rename-context <k3d-your_cluster_name> "${MY_CLUSTER_CONTEXT}"
 ```
-
-## Set Environment variables
 
 Gloo Mesh Enterprise requires a Trial License Key:
 
@@ -44,7 +43,7 @@ Gloo Mesh Enterprise requires a Trial License Key:
 GLOO_MESH_LICENSE_KEY=<input_license_key_here>
 ```
 
-Provide the Istio hub, version, and revision label
+To deploy Istio, set the the Istio hub, version, and revision label
 
 ```bash
 export HUB=us-docker.pkg.dev/gloo-mesh/istio-workshops
@@ -54,7 +53,7 @@ export ISTIO_REVISION=1-19
 
 Reminder if you want a specific version of Istio or to use the officially supported images provided by Solo.io, get the Hub value from the [Solo support page for Istio Solo images](https://support.solo.io/hc/en-us/articles/4414409064596). The value is present within the `Solo.io Istio Versioning Repo key` section
 
-Otherwise, we can use the `1.19.3` Istio image provided in our Solo Workshops
+Otherwise, we can use the `1.19.3-solo` Istio image provided in our Solo Workshops
 
 Provide the Gloo Mesh version:
 
@@ -325,7 +324,7 @@ spec:
         # You get the repo key from your Solo Account Representative.
         hub: us-docker.pkg.dev/gloo-mesh/istio-workshops
         # Any Solo.io Gloo Istio tag
-        tag: ${ISTIO_VERSION}-solo
+        tag: ${ISTIO_VERSION}
         namespace: istio-system
         # Mesh configuration
         meshConfig:
@@ -451,7 +450,7 @@ spec:
         # You get the repo key from your Solo Account Representative.
         hub: us-docker.pkg.dev/gloo-mesh/istio-workshops
         # The Solo.io Gloo Istio tag
-        tag: ${ISTIO_VERSION}-solo
+        tag: ${ISTIO_VERSION}
         values:
           gateways:
             istio-ingressgateway:
@@ -593,7 +592,7 @@ spec:
             clusterName: gloo
           network: network1
           hub: ${HUB}
-          tag: "${ISTIO_VERSION}-solo"
+          tag: "${ISTIO_VERSION}"
         meshConfig:
           trustDomain: "${MY_CLUSTER_NAME}.local"
           accessLogFile: /dev/stdout
