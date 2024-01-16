@@ -218,11 +218,6 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-  # commenting out, not sure if necessary
-  # ignore the self-signed certs that are being generated automatically    
-  #ignoreDifferences:
-  #- group: v1
-  #  kind: Secret    
 EOF
 ```
 
@@ -618,11 +613,6 @@ spec:
       prune: true
       selfHeal: true
     #automated: {}
-  ignoreDifferences:
-  - group: '*'
-    kind: '*'
-    managedFieldsManagers:
-    - argocd-application-controller
 EOF
 ```
 

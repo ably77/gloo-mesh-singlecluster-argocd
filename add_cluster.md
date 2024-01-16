@@ -183,10 +183,6 @@ spec:
     automated:
       prune: true
       selfHeal: true
-  # ignore the self-signed certs that are being generated automatically    
-  ignoreDifferences:
-  - group: v1
-    kind: Secret
 EOF
 ```
 
