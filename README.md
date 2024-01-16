@@ -881,14 +881,14 @@ Again we see Argo CD to the rescue! Instead of suffering a total outage, Argo CD
 
 ## Cleanup
 To uninstall, you can delete the Argo Applications
-```
-kubectl delete applications -n argocd istio-ingressgateway
-kubectl delete applications -n argocd istiod
-kubectl delete applications -n argocd istio-base
-kubectl delete applications -n argocd gloo-platform-helm
-kubectl delete applications -n argocd gloo-platform-crds
-kubectl delete applications -n argocd mesh-config
-kubectl delete applications -n argocd istio-lifecyclemanager
+```bash
+kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd mesh-config 
+kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd istio-ingressgateway
+kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd istiod
+kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd istio-base
+kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd istio-lifecyclemanager
+kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd gloo-platform-helm
+kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd gloo-platform-crds
 ```
 
 ## Lets have some fun
