@@ -109,7 +109,7 @@ export ISTIO_REVISION=1-19
 Provide the Gloo Mesh version:
 
 ```bash
-export GLOO_MESH_VERSION=2.5.0
+export GLOO_MESH_VERSION=2.4.7
 ```
 
 ## Installing Gloo Mesh

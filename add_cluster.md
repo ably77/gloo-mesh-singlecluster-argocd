@@ -97,7 +97,7 @@ spec:
   source:
     chart: gloo-platform-crds
     repoURL: https://storage.googleapis.com/gloo-platform/helm-charts
-    targetRevision: 2.5.0
+    targetRevision: 2.4.4
   syncPolicy:
     automated:
       prune: true
@@ -178,7 +178,7 @@ spec:
                 serverAddress: "${MGMT_SERVER_ADDRESS}:9900"
                 authority: gloo-mesh-mgmt-server.gloo-mesh              
     repoURL: https://storage.googleapis.com/gloo-platform/helm-charts
-    targetRevision: 2.5.0
+    targetRevision: 2.4.4
   syncPolicy:
     automated:
       prune: true
