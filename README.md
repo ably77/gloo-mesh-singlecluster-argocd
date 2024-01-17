@@ -410,7 +410,7 @@ spec:
   selector:
     app: istio-ingressgateway
     istio: ingressgateway
-    revision: 1-20
+    revision: ${ISTIO_REVISION}
   type: LoadBalancer
 EOF
 ```
