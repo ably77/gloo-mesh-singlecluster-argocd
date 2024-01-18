@@ -784,6 +784,9 @@ meshctl dashboard
 At this point, you should have ArgoCD, Gloo Mesh, and Istio installed on the cluster!
 ![Gloo Mesh UI](.images/gmui3.png)
 
+# Lets deploy an app!
+
+
 ## Resiliency Testing
 From a resiliency perspective, deploying Gloo Mesh with Argo CD or any other GitOps tool provides a few clear benefits to a manual or traditional push based approach.
 
