@@ -693,7 +693,7 @@ istio-ingressgateway-1-20-6-6575484979-5fbn7   1/1     Running   0          36m
 ```
 
 ## Configure Mesh Config
-Lastly, lets configure our default mesh config by deploying an Argo Application that is configured to deploy any valid YAML configuration in the `easybutton/mesh-config` directory onto the cluster.
+To finish our platform configuration, let's configure our default mesh config by deploying an Argo Application that is configured to deploy any valid YAML configuration in the `easybutton/mesh-config` directory onto the cluster.
 
 ```
 kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f - <<EOF
@@ -785,7 +785,41 @@ At this point, you should have ArgoCD, Gloo Mesh, and Istio installed on the clu
 ![Gloo Mesh UI](.images/gmui3.png)
 
 # Lets deploy an app!
+Lets deploy an Application using Argo CD! Similar to before, we will confgure an Argo Application that is configured to deploy any valid YAML configuration in the `easybutton/workloads` directory onto the cluster.
 
+```
+kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f - <<EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: workloads
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/ably77/gloo-mesh-singlecluster-argocd/
+    path: easybutton/workloads
+    targetRevision: HEAD
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m0s
+EOF
+```
+
+In the `easybutton/workloads` directory is the Bookinfo application and it's corresponding RouteTable. In the future, we can commit more mesh configuration to this directory to continue deploying new applications to this cluster
 
 ## Resiliency Testing
 From a resiliency perspective, deploying Gloo Mesh with Argo CD or any other GitOps tool provides a few clear benefits to a manual or traditional push based approach.
