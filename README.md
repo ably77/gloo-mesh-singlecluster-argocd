@@ -821,6 +821,12 @@ EOF
 
 In the `easybutton/workloads` directory is the Bookinfo application and it's corresponding RouteTable. In the future, we can commit more mesh configuration to this directory to continue deploying new applications to this cluster
 
+The Bookinfo route table exposes the application on port 80 of the Istio Ingress Gateway we deployed earlier. You should be able to access it with the following command:
+
+```bash
+echo "access the dashboard at http://$(kubectl --context "${MY_CLUSTER_CONTEXT}" get svc -n istio-gateways --selector=istio=ingressgateway -o jsonpath='{.items[*].status.loadBalancer.ingress[0].*}')/productpage"
+```
+
 ## Resiliency Testing
 From a resiliency perspective, deploying Gloo Mesh with Argo CD or any other GitOps tool provides a few clear benefits to a manual or traditional push based approach.
 
