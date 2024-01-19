@@ -6,7 +6,7 @@ GitOps is becoming increasingly popular approach to manage Kubernetes components
 ## Purpose of this Tutorial
 The main goal of this tutorial is to showcase how Gloo Mesh components can seamlessly integrate into a GitOps workflow, with Argo CD being our tool of choice. We'll guide you through the installation of Argo CD, Gloo Platform, Istio, and we'll explore the Gloo Mesh Dashboard. 
 
-Beyond the installation walkthroughs, we'll engage in practical exercises specifically designed to showcase the robustness of the system. These exercises serve as a technical demonstration of how the pull/sync mechanism offered by Argo CD enhances the reliability and resilience of your service mesh deployment. 
+Beyond the installation walkthroughs, we'll engage in practical exercises specifically designed to showcase the robustness of the system. These exercises serve as a technical demonstration of how the pull/sync mechanism offered by Argo CD enhances the reliability and resilience of your applications and service mesh.
 
 ## Where this has been tested
 - Kubernetes versions 1.25-1.28
