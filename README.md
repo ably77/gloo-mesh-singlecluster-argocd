@@ -8,6 +8,13 @@ The main goal of this tutorial is to showcase how Gloo Mesh components can seaml
 
 Beyond the installation walkthroughs, we'll engage in practical exercises specifically designed to showcase the robustness of the system. These exercises serve as a technical demonstration of how the pull/sync mechanism offered by Argo CD enhances the reliability and resilience of your service mesh deployment. 
 
+## Where this has been tested
+- Kubernetes versions 1.25-1.28
+- Google Kubernetes Engine using 2x `n2-standard-4` instance types
+- AWS EKS using 2x `m5.xlarge` instance types
+- Microsoft AKS using 2x `Standard_DS3_v2` instance types
+- Locally using K3D and Colima+K3S on Macbook Pro M1
+
 ## High Level Architecture
 ![High Level Architecture](.images/single-cluster-arch1.png)
 
