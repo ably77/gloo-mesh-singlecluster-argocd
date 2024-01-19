@@ -2,7 +2,7 @@ apiVersion: networking.gloo.solo.io/v2
 kind: RouteTable
 metadata:
   name: grafana-routetable
-  namespace: gloo-mesh
+  namespace: grafana
 spec:
   hosts:
   - '*'
