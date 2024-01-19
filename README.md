@@ -117,7 +117,7 @@ kubectl --context "${MY_CLUSTER_CONTEXT}" -n argocd patch secret argocd-secret \
   }}'
 ```
 
-#### Navigating to Argo CD UI
+### Access Argo CD with port-forwarding
 At this point, we should be able to access our Argo CD server using port-forward at http://localhost:9999
 ```
 kubectl port-forward svc/argocd-server -n argocd 9999:443 --context "${MY_CLUSTER_CONTEXT}"
