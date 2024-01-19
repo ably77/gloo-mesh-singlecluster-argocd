@@ -851,7 +851,7 @@ details-v1-984bdbc4d-7zjjp    2/2     Running   0          3m8s
 The configured route table exposes the Bookinfo application on port 80 of the Istio Ingress Gateway we deployed earlier. You should be able to access it with the following command:
 
 ```bash
-echo "access the dashboard at http://$(kubectl --context "${MY_CLUSTER_CONTEXT}" get svc -n istio-gateways --selector=istio=ingressgateway -o jsonpath='{.items[*].status.loadBalancer.ingress[0].*}')/productpage"
+echo "access the Bookinfo application at http://$(kubectl --context "${MY_CLUSTER_CONTEXT}" get svc -n istio-gateways --selector=istio=ingressgateway -o jsonpath='{.items[*].status.loadBalancer.ingress[0].*}')/productpage"
 ```
 
 ## Resiliency Testing
@@ -992,7 +992,7 @@ kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd gloo-pla
 # secrets
 kubectl --context "${MY_CLUSTER_CONTEXT}" delete secrets -n gloo-mesh --all
 
-# bookinfo
+# workloads
 kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd workloads
 ```
 
@@ -1118,4 +1118,11 @@ Additionally you can use `meshctl` to do the port-forward for you
 
 ```bash
 meshctl dashboard
+```
+
+### Access the Bookinfo Application
+The configured route table exposes the Bookinfo application on port 80 of the Istio Ingress Gateway we deployed earlier. You should be able to access it with the following command:
+
+```bash
+echo "access the Bookinfo application at http://$(kubectl --context "${MY_CLUSTER_CONTEXT}" get svc -n istio-gateways --selector=istio=ingressgateway -o jsonpath='{.items[*].status.loadBalancer.ingress[0].*}')/productpage"
 ```
