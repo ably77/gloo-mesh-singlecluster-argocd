@@ -696,82 +696,9 @@ NAME                                           READY   STATUS    RESTARTS   AGE
 istio-ingressgateway-1-20-6-6575484979-5fbn7   1/1     Running   0          36m
 ```
 
-## Configure Mesh Config
-To finish our platform configuration, let's configure our default mesh config by deploying an Argo Application that is configured to deploy any valid YAML configuration in the `easybutton/mesh-config` directory onto the cluster.
-
-```
-kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f - <<EOF
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: mesh-config
-  namespace: argocd
-  finalizers:
-  - resources-finalizer.argocd.argoproj.io
-spec:
-  project: default
-  source:
-    repoURL: https://github.com/ably77/gloo-mesh-singlecluster-argocd/
-    path: easybutton/mesh-config
-    targetRevision: HEAD
-    directory:
-      recurse: true
-  destination:
-    server: https://kubernetes.default.svc
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-    retry:
-      limit: 5
-      backoff:
-        duration: 5s
-        factor: 2
-        maxDuration: 3m0s
-EOF
-```
-
-In this repo is a simple `VirtualGateway` configuration. In the future, we can commit more mesh configuration to this directory to continue building out our cluster
-
-Confirm that the virtual gateway was configured:
-
-```bash
-kubectl get virtualgateway -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
-```
-
-Output should look similar to below
-```
-% kubectl get virtualgateway -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
-NAME             AGE
-north-south-gw   100s
-```
-
-Confirm that two route tables were created
-
-```bash
-kubectl get routetables -A --context "${MY_CLUSTER_CONTEXT}"
-```
-
-Output should look similar to below
-
-```
-% kubectl get routetables -A --context "${MY_CLUSTER_CONTEXT}"
-NAMESPACE        NAME                       AGE
-istio-gateways   ops-routetable-80          2m47s
-gloo-mesh        gloo-mesh-ui-delegate-rt   2m47s
-```
-
-### Visualize in Gloo Mesh UI using the gateway
-
-The route table above exposes the Gloo Mesh UI on port 80 of the Istio Ingress Gateway we deployed earlier. You should be able to access it with the following command:
-
-```bash
-echo "access the dashboard at http://$(kubectl --context "${MY_CLUSTER_CONTEXT}" get svc -n istio-gateways --selector=istio=ingressgateway -o jsonpath='{.items[*].status.loadBalancer.ingress[0].*}')"
-```
-
 ### Visualize in Gloo Mesh UI with port-forwarding
 
-If LoadBalancer integration is not available, you can use port-forwarding. Access Gloo Mesh Dashboard at `http://localhost:8090`:
+Using port-forwarding, access Gloo Mesh Dashboard at `http://localhost:8090`:
 
 ```bash
 kubectl port-forward -n gloo-mesh svc/gloo-mesh-ui 8090 --context "${MY_CLUSTER_CONTEXT}"
@@ -823,7 +750,35 @@ spec:
 EOF
 ```
 
-In the `easybutton/workloads` directory is the Bookinfo application and it's corresponding RouteTable. In the future, we can commit more mesh configuration to this directory to continue deploying new applications to this cluster
+In the `easybutton/workloads` directory is the Bookinfo application, the corresponding RouteTable, and a VirtualGateway. In the future, we can commit more mesh configuration to this directory to continue deploying new applications to this cluster
+
+Confirm that the virtual gateway was configured:
+
+```bash
+kubectl get virtualgateway -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
+```
+
+Output should look similar to below
+```
+% kubectl get virtualgateway -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
+NAME             AGE
+north-south-gw   100s
+```
+
+Confirm that two route tables were created
+
+```bash
+kubectl get routetables -A --context "${MY_CLUSTER_CONTEXT}"
+```
+
+Output should look similar to below
+
+```
+% kubectl get routetables -A --context "${MY_CLUSTER_CONTEXT}"
+NAMESPACE        NAME                       AGE
+istio-gateways   ops-routetable-80          2m47s
+gloo-mesh        gloo-mesh-ui-delegate-rt   2m47s
+```
 
 You can check to see that the bookinfo application has been deployed
 
