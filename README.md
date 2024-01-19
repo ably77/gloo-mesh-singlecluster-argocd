@@ -1167,3 +1167,10 @@ The configured route table exposes the Bookinfo application on port 80 of the Is
 ```bash
 echo "access the Bookinfo application at http://$(kubectl --context "${MY_CLUSTER_CONTEXT}" get svc -n istio-gateways --selector=istio=ingressgateway -o jsonpath='{.items[*].status.loadBalancer.ingress[0].*}')/productpage"
 ```
+
+### Access the Grafana UI
+The configured virtual gateway and route table exposes the Grafana application on port 80 at the `/grafana` path of the Istio Ingress Gateway we deployed earlier. You should be able to access it with the following command:
+
+```bash
+echo "access the Grafana UI at http://$(kubectl --context "${MY_CLUSTER_CONTEXT}" get svc -n istio-gateways --selector=istio=ingressgateway -o jsonpath='{.items[*].status.loadBalancer.ingress[0].*}')/grafana"
+```
