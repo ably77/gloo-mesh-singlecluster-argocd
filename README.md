@@ -961,6 +961,8 @@ gloo-mesh-ui             0/1     1            0           2s
 prometheus-server        0/1     1            0           2s
 ```
 
+Another important detail to note is that Gloo Mesh is not in the data path! This means that although the entire deployment was deleted and restarted, the traffic routing to our applications remains unaffected. 
+
 ### Scenario 2 - Configuration Resiliency
 Similarly to keeping the health of our Applications and Infra alive, we can benefit from self-healing capabilities by syncing our application networking configuration as well. Let's test another scenario in which a piece of our service mesh configuration is mistakenly removed from the cluster and see what happens
 
