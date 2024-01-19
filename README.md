@@ -821,7 +821,27 @@ EOF
 
 In the `easybutton/workloads` directory is the Bookinfo application and it's corresponding RouteTable. In the future, we can commit more mesh configuration to this directory to continue deploying new applications to this cluster
 
-The Bookinfo route table exposes the application on port 80 of the Istio Ingress Gateway we deployed earlier. You should be able to access it with the following command:
+You can check to see that the bookinfo application has been deployed
+
+```bash
+kubectl get pods -n bookinfo-frontends --context "${MY_CLUSTER_CONTEXT}" && \
+kubectl get pods -n bookinfo-backends --context "${MY_CLUSTER_CONTEXT}"
+```
+
+Output should look similar to below:
+
+```bash
+NAME                             READY   STATUS    RESTARTS   AGE
+productpage-v1-b8f647485-cnzqj   2/2     Running   0          3m8s
+
+NAME                          READY   STATUS    RESTARTS   AGE
+ratings-v1-85b5789856-ppzzg   2/2     Running   0          3m8s
+reviews-v2-56bc64445f-c54fn   2/2     Running   0          3m8s
+reviews-v1-749bbb44c5-bp8z4   2/2     Running   0          3m8s
+details-v1-984bdbc4d-7zjjp    2/2     Running   0          3m8s
+```
+
+The configured route table exposes the Bookinfo application on port 80 of the Istio Ingress Gateway we deployed earlier. You should be able to access it with the following command:
 
 ```bash
 echo "access the dashboard at http://$(kubectl --context "${MY_CLUSTER_CONTEXT}" get svc -n istio-gateways --selector=istio=ingressgateway -o jsonpath='{.items[*].status.loadBalancer.ingress[0].*}')/productpage"
@@ -839,7 +859,7 @@ From a resiliency perspective, deploying Gloo Mesh with Argo CD or any other Git
 
 We have already demonstrated using declarative configuration and Git as our source of truth when deploying and installing Gloo Mesh, but lets take a look at auto sync and self-healing.
 
-### Scenario 1: 
+### Scenario 1 - Infrastructure Resiliency 
 
 For Kubernetes Pods, in the event of a pod failure the scheduler will automatically start a new pod. But what happens if the Deployment is deleted?
 
@@ -891,7 +911,7 @@ gloo-mesh-ui             0/1     1            0           2s
 prometheus-server        0/1     1            0           2s
 ```
 
-### Scenario 2:
+### Scenario 2 - Configuration Resiliency
 Similarly to keeping the health of our Applications and Infra alive, we can benefit from self-healing capabilities by syncing our application networking configuration as well. Let's test another scenario in which a piece of our service mesh configuration is mistakenly removed from the cluster and see what happens
 
 Let's take a look at our route tables
@@ -916,6 +936,32 @@ kubectl delete routetables -n istio-gateways ops-routetable-80 --context "${MY_C
 
 Again we see Argo CD to the rescue! Instead of suffering a total outage, Argo CD detected a drift in the desired state and reconfigured the Ops team route table automatically.
 
+
+### Scenario 3 - Application Resiliency
+To show another example of how Argo CD resiliency capabilities can help, let's explore a scenario where a user can intentionally/unintentionally modify the deployment of a running application such as the image of a running Pod. In this scenario, without Argo CD the image update would be treated as an intentional action - however with Argo CD in place we should observe a syncing event to reconfigure to the source of truth in Git.
+
+First, in a separate terminal we can do a watch on the image. Note, you may need to set your `MY_CLUSTER_CONTEXT` variable again.
+
+```bash
+kubectl --context "${MY_CLUSTER_CONTEXT}" get deployment/productpage-v1 -n bookinfo-frontends -oyaml -w | grep image:
+```
+
+Now we can update the image of the `productpage-v1` deployment to `bogus-container:hack` and see what happens
+
+```bash
+kubectl --context "${MY_CLUSTER_CONTEXT}" set image deployment/productpage-v1 -n bookinfo-frontends productpage=bogus-container:hack
+```
+
+What we should see is that even though the image was updated, it was automatically reconciled back to the desired state in Git. The output of the watch command should reflect this
+
+```
+image: us-central1-docker.pkg.dev/solo-test-236622/jmunozro/examples-bookinfo-productpage-v1:1.16.2
+image: bogus-container:hack
+image: us-central1-docker.pkg.dev/solo-test-236622/jmunoexamples-bookinfo-productpage-v1:1.16.2
+```
+
+Again we can see the value of drift detection and sync back to the desired state using Argo CD.
+
 ## Cleanup
 To uninstall, you can delete the Argo Applications
 ```bash
@@ -938,6 +984,9 @@ kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd gloo-pla
 
 # secrets
 kubectl --context "${MY_CLUSTER_CONTEXT}" delete secrets -n gloo-mesh --all
+
+# bookinfo
+kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd workloads
 ```
 
 ## Lets have some fun
