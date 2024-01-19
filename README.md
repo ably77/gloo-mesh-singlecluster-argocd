@@ -804,7 +804,9 @@ echo "access the Bookinfo application at http://$(kubectl --context "${MY_CLUSTE
 ```
 
 ## Observe all the things!
+By seamlessly integrating with popular tools like Grafana and Prometheus, implementing Istio allows organizations to gain valuable insights into the health, performance, and overall behavior of their distributed applications within the service mesh.
 
+Similar to before, we will confgure an Argo Application that is configured to deploy any valid YAML configuration in the `easybutton/observability` directory onto the cluster. This application will manage the deployment of Prometheus and Grafana, and expose the Grafana UI to us through the gateway with another route table
 
 ```bash
 kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f - <<EOF
@@ -838,17 +840,22 @@ spec:
 EOF
 ```
 
-You can check to see that the grafana application has been deployed
+You can check to see that the Grafana and Prometheus applications have been deployed
 
 ```bash
 kubectl get pods -n grafana --context "${MY_CLUSTER_CONTEXT}"
+kubectl get pods -n istio-system --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 Output should look similar to below:
 
 ```bash
-NAME                     READY   STATUS    RESTARTS   AGE
-grafana-9d444cb6-xznkw   2/2     Running   0          61s
+NAME                       READY   STATUS    RESTARTS   AGE
+grafana-576f6587c5-v4bjr   2/2     Running   0          13m
+
+NAME                           READY   STATUS    RESTARTS   AGE
+istiod-1-20-6b99fdd545-c8m5v   1/1     Running   0          47m
+prometheus-6cf7c7cb94-bpn5v    2/2     Running   0          23m
 ```
 
 Confirm that an additional route table was created as well
