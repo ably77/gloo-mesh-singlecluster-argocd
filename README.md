@@ -715,7 +715,7 @@ meshctl dashboard
 At this point, you should have ArgoCD, Gloo Mesh, and Istio installed on the cluster!
 ![Gloo Mesh UI](.images/gmui3.png)
 
-# Lets deploy an app!
+## Lets deploy our first app!
 Lets deploy an Application using Argo CD! Similar to before, we will confgure an Argo Application that is configured to deploy any valid YAML configuration in the `easybutton/workloads` directory onto the cluster.
 
 ```
@@ -801,6 +801,41 @@ The configured virtual gateway and route table exposes the Bookinfo application 
 
 ```bash
 echo "access the Bookinfo application at http://$(kubectl --context "${MY_CLUSTER_CONTEXT}" get svc -n istio-gateways --selector=istio=ingressgateway -o jsonpath='{.items[*].status.loadBalancer.ingress[0].*}')/productpage"
+```
+
+## Observe all the things!
+
+
+```bash
+kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f - <<EOF
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: observability
+  namespace: argocd
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/ably77/gloo-mesh-singlecluster-argocd/
+    path: easybutton/observability
+    targetRevision: HEAD
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m0s
+EOF
 ```
 
 ## Resiliency Testing
