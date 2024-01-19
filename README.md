@@ -71,15 +71,12 @@ export GLOO_MESH_VERSION=2.5.0
 ### Installing Argo CD	
 Let's start by deploying Argo CD to our `gloo` cluster context
 
-Create Argo CD namespace
-```bash
-kubectl create namespace argocd --context "${MY_CLUSTER_CONTEXT}"
-```
-
-Deploy Argo CD 2.8.0 using the [non-HA YAML manifests](https://github.com/argoproj/argo-cd/releases)
+Deploy Argo CD 2.9.5 using the [non-HA YAML manifests](https://github.com/argoproj/argo-cd/releases)
 <!-- Using https://github.com/solo-io/gitops-library/tree/main/argocd/deploy/default -->
 ```bash
-until kubectl apply -k https://github.com/solo-io/gitops-library.git/argocd/deploy/default/ --context "${MY_CLUSTER_CONTEXT}" > /dev/null 2>&1; do sleep 2; done
+kubectl create namespace argocd --context "${MY_CLUSTER_CONTEXT}"
+
+until kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/v2.9.5/manifests/install.yaml --context "${MY_CLUSTER_CONTEXT}" > /dev/null 2>&1; do sleep 2; done
 ```
 
 Check deployment status:
