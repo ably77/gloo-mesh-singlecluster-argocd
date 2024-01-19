@@ -760,12 +760,11 @@ kubectl get virtualgateway -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
 
 Output should look similar to below
 ```
-% kubectl get virtualgateway -n istio-gateways --context "${MY_CLUSTER_CONTEXT}"
 NAME             AGE
 north-south-gw   100s
 ```
 
-Confirm that two route tables were created
+Confirm that a route table was created
 
 ```bash
 kubectl get routetables -A --context "${MY_CLUSTER_CONTEXT}"
@@ -774,10 +773,8 @@ kubectl get routetables -A --context "${MY_CLUSTER_CONTEXT}"
 Output should look similar to below
 
 ```
-% kubectl get routetables -A --context "${MY_CLUSTER_CONTEXT}"
-NAMESPACE        NAME                       AGE
-istio-gateways   ops-routetable-80          2m47s
-gloo-mesh        gloo-mesh-ui-delegate-rt   2m47s
+NAMESPACE            NAME                  AGE
+bookinfo-frontends   bookinfo-routetable   51s
 ```
 
 You can check to see that the bookinfo application has been deployed
@@ -800,7 +797,7 @@ reviews-v1-749bbb44c5-bp8z4   2/2     Running   0          3m8s
 details-v1-984bdbc4d-7zjjp    2/2     Running   0          3m8s
 ```
 
-The configured route table exposes the Bookinfo application on port 80 of the Istio Ingress Gateway we deployed earlier. You should be able to access it with the following command:
+The configured virtual gateway and route table exposes the Bookinfo application on port 80 of the Istio Ingress Gateway we deployed earlier. You should be able to access it with the following command:
 
 ```bash
 echo "access the Bookinfo application at http://$(kubectl --context "${MY_CLUSTER_CONTEXT}" get svc -n istio-gateways --selector=istio=ingressgateway -o jsonpath='{.items[*].status.loadBalancer.ingress[0].*}')/productpage"
@@ -873,27 +870,31 @@ prometheus-server        0/1     1            0           2s
 ### Scenario 2 - Configuration Resiliency
 Similarly to keeping the health of our Applications and Infra alive, we can benefit from self-healing capabilities by syncing our application networking configuration as well. Let's test another scenario in which a piece of our service mesh configuration is mistakenly removed from the cluster and see what happens
 
-Let's take a look at our route tables
+Let's take a look at our virtual gateways and route tables
 
 ```bash
-kubectl get routetables -A --context "${MY_CLUSTER_CONTEXT}"
+kubectl get routetables -A --context "${MY_CLUSTER_CONTEXT}" && \
+kubectl get virtualgateway -A --context "${MY_CLUSTER_CONTEXT}"
 ```
 
 Output should look similar to below
 
 ```bash
-NAMESPACE        NAME                       AGE
-gloo-mesh        gloo-mesh-ui-delegate-rt   94m
-istio-gateways   ops-routetable-80          94m
+NAMESPACE            NAME                  AGE
+bookinfo-frontends   bookinfo-routetable   2m41s
+
+NAMESPACE        NAME             AGE
+istio-gateways   north-south-gw   2m41s
 ```
 
-Now let's take down our Ops team routetable, which manages all of the routes to port 80 on our ingress gateway. In our current environment this would just be the Gloo Mesh UI, but a similar scenario in a large environment could have significant consequences affecting multiple teams.
+Now let's take down both our virtual gateway and route table. In our current environment this would just be the Bookinfo application, but a similar scenario in a large environment could have significant consequences affecting multiple teams.
 
 ```bash
-kubectl delete routetables -n istio-gateways ops-routetable-80 --context "${MY_CLUSTER_CONTEXT}"
+kubectl delete routetables -n bookinfo-frontends bookinfo-routetable --context "${MY_CLUSTER_CONTEXT}"
+kubectl delete virtualgateway -n istio-gateways north-south-gw --context "${MY_CLUSTER_CONTEXT}"
 ```
 
-Again we see Argo CD to the rescue! Instead of suffering a total outage, Argo CD detected a drift in the desired state and reconfigured the Ops team route table automatically.
+Again we see Argo CD to the rescue! Instead of suffering a total outage, Argo CD detected a drift in the desired state and reconciled the virtual gateway and route table
 
 
 ### Scenario 3 - Application Resiliency
