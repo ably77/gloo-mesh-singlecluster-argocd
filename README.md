@@ -806,7 +806,7 @@ echo "access the Bookinfo application at http://$(kubectl --context "${MY_CLUSTE
 ## Observe all the things!
 By seamlessly integrating with popular tools like Grafana and Prometheus, implementing Istio allows organizations to gain valuable insights into the health, performance, and overall behavior of their distributed applications within the service mesh.
 
-Similar to before, we will confgure an Argo Application that is configured to deploy any valid YAML configuration in the `easybutton/observability` directory onto the cluster. This application will manage the deployment of Prometheus and Grafana, and expose the Grafana UI to us through the gateway with another route table
+Similar to before, we will confgure an Argo Application that is configured to deploy any valid YAML configuration in the `easybutton/observability` directory onto the cluster. This application will manage the deployment of Prometheus and Grafana, configure default dashboards, and expose the Grafana UI to us through the gateway with another route table
 
 ```bash
 kubectl apply --context "${MY_CLUSTER_CONTEXT}" -f - <<EOF
@@ -858,6 +858,21 @@ istiod-1-20-6b99fdd545-c8m5v   1/1     Running   0          47m
 prometheus-6cf7c7cb94-bpn5v    2/2     Running   0          23m
 ```
 
+You can see that a few default dashboards configured using configmaps have been created
+
+```bash
+kubectl get configmap -n grafana --context "${MY_CLUSTER_CONTEXT}"
+```
+
+Output should look similar to below:
+
+```bash
+NAME                       DATA   AGE
+solo-istio-dashboard       1      34m
+kubernetes-dashboard       1      34m
+istio-grafana-dashboards   6      34m
+```
+
 Confirm that an additional route table was created as well
 
 ```bash
@@ -877,6 +892,10 @@ The configured virtual gateway and route table exposes the Grafana application o
 ```bash
 echo "access the Grafana UI at http://$(kubectl --context "${MY_CLUSTER_CONTEXT}" get svc -n istio-gateways --selector=istio=ingressgateway -o jsonpath='{.items[*].status.loadBalancer.ingress[0].*}')/grafana"
 ```
+
+If you navigate to the available dashboards, we should see a kubernetes dashboard, the upstream community Istio dashboards, as well as the Solo Istio Performance Dashboard!
+
+![Solo Istio Performance Dashboard](.images/solo-dashboard1.png)
 
 ## Resiliency Testing
 From a resiliency perspective, deploying Gloo Mesh with Argo CD or any other GitOps tool provides a few clear benefits to a manual or traditional push based approach.
