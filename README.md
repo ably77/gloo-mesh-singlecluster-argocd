@@ -1021,8 +1021,11 @@ Again we can see the value of drift detection and sync back to the desired state
 ## Cleanup
 To uninstall, you can delete the Argo Applications
 ```bash
-# mesh config
-kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd mesh-config 
+# observability
+kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd observability
+
+# workloads
+kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd workloads
 
 # helm install
 kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd istio-ingressgateway
@@ -1040,9 +1043,6 @@ kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd gloo-pla
 
 # secrets
 kubectl --context "${MY_CLUSTER_CONTEXT}" delete secrets -n gloo-mesh --all
-
-# workloads
-kubectl --context "${MY_CLUSTER_CONTEXT}" delete applications -n argocd workloads
 ```
 
 ## Lets have some fun
