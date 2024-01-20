@@ -18,6 +18,9 @@ Beyond the installation walkthroughs, we'll engage in practical exercises specif
 ## High Level Architecture
 ![High Level Architecture](.images/single-cluster-arch1.png)
 
+## Request a Trial
+If you are interested in walking through the following steps hands-on, request a [trial license of Gloo Mesh](https://www.solo.io/free-trial/)!
+
 ## Prerequisites
 This tutorial assumes a single Kubernetes cluster for demonstration. Instructions have been validated on k3d, as well as in EKS and GKE. Please note that the setup and installation of Kubernetes are beyond the scope of this guide. Ensure that your cluster contexts are named `gloo` by running:
 ```bash
@@ -116,6 +119,8 @@ kubectl --context "${MY_CLUSTER_CONTEXT}" -n argocd patch secret argocd-secret \
     "admin.passwordMtime": "'$(date +%FT%T%Z)'"
   }}'
 ```
+
+Note: if you want to change the password to something else, [follow these instructions in the Argo CD Docs](https://argo-cd.readthedocs.io/en/stable/faq/#i-forgot-the-admin-password-how-do-i-reset-it)
 
 ### Access Argo CD with port-forwarding
 At this point, we should be able to access our Argo CD server using port-forward at http://localhost:9999
