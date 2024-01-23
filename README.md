@@ -189,7 +189,7 @@ spec:
           cluster: "${MY_CLUSTER_NAME}"
         glooMgmtServer:
           enabled: true
-          serviceType: LoadBalancer
+          serviceType: ClusterIP
           registerCluster: true
           createGlobalWorkspace: true
         prometheus:
@@ -197,10 +197,6 @@ spec:
         redis:
           deployment:
             enabled: true
-        telemetryGateway:
-          enabled: true
-          service:
-            type: ClusterIP
         telemetryCollector:
           enabled: true
           config:
